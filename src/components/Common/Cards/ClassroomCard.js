@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeClass } from "../../../store/School/classroomSlice";
 import { API_URL } from "../../../helpers/URL";
 import PopUpMenu from "../../UI/PopUpMenu";
-import { setSuccessToast } from "../../../store/genralUser";
+import { setSuccessToast } from "../../../store/generalUser";
 
 export default function ClassroomCard({
   classData,

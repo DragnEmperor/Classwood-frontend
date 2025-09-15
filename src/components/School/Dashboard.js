@@ -17,7 +17,7 @@ import EventPannel from "../Common/EventPannel";
 import NoticePannel from "../Common/NoticePannel";
 import AddNoticeSidebar from "./AddNoticeSidebar";
 import AddEventSidebar from "./AddEventSidebar";
-import { setSuccessToast } from "../../store/genralUser";
+import { setSuccessToast } from "../../store/generalUser";
 
 export default function StudentDashboard() {
   const dispatch = useDispatch();
@@ -31,7 +31,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (!noOfStaffMenber) getAllSchoolData(dispatch, navigate, setLoading, session);
-  }, []);
+  }, [dispatch, navigate, noOfStaffMenber, session]);
   const [thought, setThought] = useState("");
   const [openAddNoticeModal, setOpenAddNoticeModal] = useState(false);
   const [openAddEventModal, setOpenAddEventeModal] = useState(false);
@@ -40,6 +40,9 @@ export default function StudentDashboard() {
   const [presentStudent, setPresentStudents] = useState("");
   const [presentTeachngStaff, setPresentTeachingStaff] = useState("");
   const [presentNonTeachingStaff, setPresentNonTeachigStaff] = useState("");
+  const [feeSummary, setFeeSummary] = useState(null);
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [loadingFees, setLoadingFees] = useState(false);
 
   useEffect(() => {
     const date = new Date();
@@ -57,7 +60,6 @@ export default function StudentDashboard() {
         Authorization: `Bearer ${token}`,
       }
     });
-    console.log("Res", res);
     if(res.status===201) dispatch(setSuccessToast("Thought Added Successfully"));
   }
   async function getThougthOfTheDay(){
@@ -68,20 +70,18 @@ export default function StudentDashboard() {
         Authorization: `Bearer ${token}`,
       }
     });
-    setThought(res.data[res.data.length - 1].content)
-    console.log("thi is it",res)
+    if (res.status === 200 && res.data.length > 0) {
+      setThought(res.data[res.data.length - 1].content)
+    }
   }
   const getAllStudentAttendence = async () => {
     if(today){
       let presents = 0;
-      console.log("students",allStudent)
       for(let i in allStudent){
-        let val = JSON.parse(allStudent[i].month_attendance)[today-1];
+        let val = allStudent[i].month_attendance[today-1];
         if(val===2) presents++;
-        console.log("presents",presents);
       }
       setPresentStudents(presents);
-      console.log("These are the present", presents)
     }
 
   }
@@ -92,11 +92,11 @@ export default function StudentDashboard() {
       for(let i in allStaffMemeber){
         if(allStaffMemeber[i].isTeachingStaff){
 
-          let val = JSON.parse(allStaffMemeber[i].month_attendance)[today-1];
+          let val = allStaffMemeber[i].month_attendance[today-1];
           if(val===2) presentTeaching++;
         }
         else {
-          let val = JSON.parse(allStaffMemeber[i].month_attendance)[today-1];
+          let val = allStaffMemeber[i].month_attendance[today-1];
           if(val===2) presentNonTeaching++;
         }
       }
@@ -107,9 +107,45 @@ export default function StudentDashboard() {
   }
   useEffect(()=>{
     getThougthOfTheDay();
+    fetchFeeSummary();
+    fetchRecentPayments();
   },[])
-  useEffect(()=>{
 
+  const fetchFeeSummary = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(API_URL + "list/fees/?summary=true", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      if (res.status === 200) {
+        setFeeSummary(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching fee summary:", error);
+    }
+  };
+
+  const fetchRecentPayments = async () => {
+    try {
+      setLoadingFees(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(API_URL + "list/payments/?limit=10", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      if (res.status === 200) {
+        setRecentPayments(res.data.payments || []);
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+    } finally {
+      setLoadingFees(false);
+    }
+  };
+  useEffect(()=>{
     getAllStudentAttendence();
     getAllStaffAttendence();
   },[today,allStudent]);
@@ -193,11 +229,14 @@ export default function StudentDashboard() {
                 <div className="flex flex-col items-center justify-center w-full h-full p-4">
            
                   <PieChart
-                    data={[{ title: "Paid", value: 0, color: "#2DD4BF" }]}
+                    data={[
+                      { title: "Paid", value: feeSummary ? parseFloat(feeSummary.total_paid) : 0, color: "#2DD4BF" },
+                      { title: "Pending", value: feeSummary ? parseFloat(feeSummary.pending) : 0, color: "#F59E0B" }
+                    ]}
                     lengthAngle={360}
                     lineWidth={10}
                     startAngle={180}
-                    totalValue={100}
+                    totalValue={feeSummary ? parseFloat(feeSummary.total_fees) : 100}
                     rounded={true}
                     animate={true}
                     background="#818CF8"
@@ -215,7 +254,7 @@ export default function StudentDashboard() {
 
                   </span>
                   Total Fees</span>
-                <span className="text-xl font-bold ml-6">2 Crore</span>
+                <span className="text-xl font-bold ml-6">Rs {feeSummary ? feeSummary.total_fees : "0"}</span>
               </div>
               <div className="flex flex-col mb-6">
                 <span className="flex items-center justify-center text-gray-600 ">
@@ -223,7 +262,7 @@ export default function StudentDashboard() {
 
                   </span>
                   Fee Submitted</span>
-                  <span className="text-xl font-bold ml-6">2 Crore</span>
+                  <span className="text-xl font-bold ml-6">Rs {feeSummary ? feeSummary.total_paid : "0"}</span>
               </div>
               <div className="flex flex-col ">
                 <span className="flex items-center justify-center text-gray-600 ">
@@ -231,7 +270,7 @@ export default function StudentDashboard() {
 
                   </span>
                   Fee Pending</span>
-                  <span className="text-xl font-bold ml-6">2 Crore</span>
+                  <span className="text-xl font-bold ml-6">Rs {feeSummary ? feeSummary.pending : "0"}</span>
               </div>
             </div>
             </div>
@@ -287,13 +326,18 @@ export default function StudentDashboard() {
 
             <div className="flex mt-10 "></div>
             {/* fees history */}
-            <div className="h-72 md:rounded-[30px] bg-gray-200 p-6 w-full mt-10">
-              <h1 className="text-2xl text-center md:text-4xl">
-                Payment History
-              </h1>
-              <div className="grid grid-cols-3 mt-4">
+            <div className="h-auto md:rounded-[30px] bg-gray-200 p-6 w-full mt-10">
+              <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl text-center md:text-4xl flex-1">
+                  Payment History
+                </h1>
+              </div>
+              <div className="grid grid-cols-4 mt-4">
                 <div className="py-3 font-bold text-center text-gray-700 uppercase text-md lg:text-lg">
                   Serial
+                </div>
+                <div className="py-3 font-bold text-center text-gray-700 uppercase text-md lg:text-lg">
+                  Student Name
                 </div>
                 <div className="py-3 font-bold text-center text-gray-700 uppercase text-md lg:text-lg">
                   Amount
@@ -302,14 +346,31 @@ export default function StudentDashboard() {
                   Date
                 </div>
 
-                <div className="px-6 py-4 text-center">1</div>
-                <div className="px-6 py-4 text-center">Rs 11000</div>
-                <div className="px-6 py-4 text-center">11 jan</div>
-
-                <div className="col-span-3 px-6 py-4 text-center">
-                  No Payment History Found
-                </div>
+                {recentPayments && recentPayments.length > 0 ? (
+                  recentPayments.map((payment, index) => (
+                    <React.Fragment key={payment.id}>
+                      <div className="px-6 py-4 text-center">{index + 1}</div>
+                      <div className="px-6 py-4 text-center">{payment.student_name}</div>
+                      <div className="px-6 py-4 text-center">Rs {payment.amount_paid}</div>
+                      <div className="px-6 py-4 text-center">{new Date(payment.payment_date).toLocaleDateString()}</div>
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <div className="col-span-4 px-6 py-4 text-center">
+                    No Payment History Found
+                  </div>
+                )}
               </div>
+              {recentPayments && recentPayments.length > 0 && (
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={() => navigate("/school/payments")}
+                    className="py-2 px-6 bg-[#372ed1] rounded-md text-white font-semibold hover:bg-[#2c24a3] transition-colors"
+                  >
+                    View All Payments
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div className="w-full my-10 xl:w-2/5 2xl:w-1/3 min-[1200px]:mx-10 px-10 min-[1200px]:px-0 min-[1200px]:my-0">

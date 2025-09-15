@@ -1,13 +1,13 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { Menu, Transition } from "@headlessui/react";
-import { GoPrimitiveDot } from "react-icons/go";
+import { GoDotFill } from "react-icons/go";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { removeStaffMember } from "../../../store/School/staffSlice";
 import { API_URL } from "../../../helpers/URL";
 import { formatDate } from "../../../helpers/helperFunctions";
-import { setWarningToast, setSuccessToast } from "../../../store/genralUser";
+import { setWarningToast, setSuccessToast } from "../../../store/generalUser";
 import PopUpMenu from "../../UI/PopUpMenu";
 import { Rings } from "react-loader-spinner";
 export default function ProfileCard(props) {
@@ -78,8 +78,8 @@ const deleteFunction = {
 
   useEffect(() => {
     if (props.type === "student")
-      setAttendanceState(JSON.parse(props.attendance)[today - 1]);
-    else setAttendanceState(JSON.parse(props.allData.month_attendance)[today - 1]);
+      setAttendanceState(props.attendance[today - 1]);
+    else setAttendanceState(props.allData.month_attendance[today - 1]);
     
   }, [today]);
 
@@ -179,11 +179,11 @@ const deleteFunction = {
           {props.type  ? (
             attendanceState === 2 ? (
               <span className="flex items-center text-green-500">
-                <GoPrimitiveDot className="w-4 h-4 mr-2" /> Present
+                <GoDotFill className="w-4 h-4 mr-2" /> Present
               </span>
             ) : attendanceState === 1 ? (
               <span className="flex items-center text-red-500">
-                <GoPrimitiveDot className="w-4 h-4 mr-2" /> Absent
+                <GoDotFill className="w-4 h-4 mr-2" /> Absent
               </span>
             ) : (
               <span className="text-red-500">Attendance Due</span>
@@ -232,7 +232,7 @@ const deleteFunction = {
               onClick={() => markAttendance(false)}
               className="flex items-center px-4 py-1 mx-4 font-medium text-white duration-300 ease-in-out bg-red-600 rounded-md hover:bg-red-800"
             >
-              Abesnt
+              Absent
             </button>
           </div>
         </div>

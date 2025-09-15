@@ -5,7 +5,7 @@ import axios from "axios";
 import { API_URL } from "../../../helpers/URL";
 import ClassDropDown from "../../School/helpers/ClassDropDown";
 import SubjectDropDown from "../../School/helpers/SubjectDropDown";
-import { setWarningToast, setSuccessToast } from "../../../store/genralUser";
+import { setWarningToast, setSuccessToast } from "../../../store/generalUser";
 import { useDispatch } from "react-redux";
 import { Rings } from "react-loader-spinner";
 

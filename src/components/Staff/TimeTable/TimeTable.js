@@ -8,7 +8,7 @@ import { Rings } from "react-loader-spinner";
 import { getAllImportantData } from "../helper/getData";
 import { useNavigate } from "react-router-dom";
 import ViewSubjectEntry from "./ViewSubjectEntry";
-import { setWarningToast } from "../../../store/genralUser";
+import { setWarningToast } from "../../../store/generalUser";
 
 function sortTimeTable(a, b) {
   return a.start_time > b.start_time;
@@ -42,13 +42,13 @@ export default function TimeTable({ setTimetableState }) {
       var timetable = [];
       const token = localStorage.getItem("token");
   
-      const res = await axios.get(API_URL + "staff/timeTable", {
+      const res = await axios.get(API_URL + "staff/timeTable/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
      
       });
-      const commonRes = await axios.get(API_URL + "staff/commontime", {
+      const commonRes = await axios.get(API_URL + "staff/commontime/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

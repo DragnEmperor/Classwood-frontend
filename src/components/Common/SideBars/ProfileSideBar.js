@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import { GoPrimitiveDot, GoLocation } from "react-icons/go";
+import { GoDotFill, GoLocation } from "react-icons/go";
 import { RxCross1 } from "react-icons/rx";
 import {BsFillPersonFill} from 'react-icons/bs';
 import { BsBriefcase } from "react-icons/bs";
@@ -81,7 +81,7 @@ export default function ProfileSideBar({setOpenProfile, data, setProfileData, se
         <span className="font-semibold text-md ">{data.first_name + " " + data.last_name}</span>
         <span className="text-gray-400">{profileType==="student" ? "Admission No. "+  data.admission_no : "id: 1111"}</span>
         <span className="flex items-center text-green-500">
-          <GoPrimitiveDot className="w-4 h-4 mr-2" /> Present
+          <GoDotFill className="w-4 h-4 mr-2" /> Present
         </span>
       </div>
       <div className="flex flex-row gap-8 justify-around mt-4 border-b-[1px] border-gray-200 pb-4 mx-4">

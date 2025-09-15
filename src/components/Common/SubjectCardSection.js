@@ -2,7 +2,7 @@ import React from "react";
 import ClassroomCard from "./Cards/ClassroomCard";
 import SubjectCard from "./Cards/SubjectCard";
 import { saveAs } from "file-saver";
-import { API_URL } from "../../helpers/URL";
+import { buildMediaUrl } from "../../helpers/URL";
 export default function SubjectCardSection({
   classCumilativeName,
   sectionData,
@@ -12,7 +12,7 @@ export default function SubjectCardSection({
   const downloadFile = (subject) => {
     for (let i in subject.attachments) {
       const element =
-        API_URL.substring(0, API_URL.length - 5) + subject.attachments[i];
+        buildMediaUrl(subject.attachments[i]);
       saveAs(element, subject.subject_name + ".pdf");
     }
   };

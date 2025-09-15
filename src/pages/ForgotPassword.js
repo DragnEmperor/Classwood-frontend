@@ -6,10 +6,10 @@ import EmailPage from "../components/ForgotPassword/EmailPage";
 import OTPPage from "../components/ForgotPassword/OTPPage";
 import { API_URL } from "../helpers/URL";
 import { useNavigate } from "react-router-dom";
-import { loginUser, setSuccessToast, setWarningToast } from "../store/genralUser";
+import { loginUser, setSuccessToast, setWarningToast } from "../store/generalUser";
 import { useDispatch } from "react-redux";
 import { getAllDatatForStaffUser } from "../components/Staff/helper/getData";
-import { setProfileData } from "../store/genralUser";
+import { setProfileData } from "../store/generalUser";
 import loginBg from "../assets/CLASSWOOD Login Cover.png";
 
 export default function ForgotPassword() {

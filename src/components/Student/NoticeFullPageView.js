@@ -3,7 +3,7 @@ import Layout from "./StudentLayout";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../../helpers/URL";
-import { setNotice } from "../../store/genralUser";
+import { setNotice } from "../../store/generalUser";
 import { useSelector, useDispatch } from "react-redux";
 export default function NoticeFullPageView() {
   const [Notice, setCurrentNotice] = useState({});

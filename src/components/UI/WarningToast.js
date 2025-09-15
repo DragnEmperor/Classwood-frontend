@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react'
 import { useSelector, useDispatch } from 'react-redux';
-import { setWarningToast } from '../../store/genralUser';
+import { setWarningToast } from '../../store/generalUser';
 export default function WarningToast() {
     const dispatch = useDispatch();
     const warningToast = useSelector((state)=> state.user.warningToast);

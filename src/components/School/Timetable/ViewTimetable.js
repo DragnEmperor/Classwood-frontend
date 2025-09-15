@@ -40,7 +40,7 @@ export default function ViewTimetible({ setTimetableState }) {
     var timetable = [];
     const token = localStorage.getItem("token");
 
-    const res = await axios.get(API_URL + "staff/timeTable", {
+    const res = await axios.get(API_URL + "staff/timeTable/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -48,7 +48,7 @@ export default function ViewTimetible({ setTimetableState }) {
         classroom: selectedClass.id,
       },
     });
-    const commonRes = await axios.get(API_URL + "staff/commontime", {
+    const commonRes = await axios.get(API_URL + "staff/commontime/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

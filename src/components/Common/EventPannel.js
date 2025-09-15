@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../helpers/URL";
 import { useSelector, useDispatch } from "react-redux";
-import { setEvents } from "../../store/genralUser";
+import { setEvents } from "../../store/generalUser";
 import {GrNext} from "react-icons/gr";
 import {IoMdAddCircleOutline} from 'react-icons/io';
 import SideRectange from "../../assets/icons/SideRetangle";

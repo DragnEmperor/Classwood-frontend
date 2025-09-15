@@ -7,7 +7,7 @@ import { AiOutlineSearch } from "react-icons/ai";
 import axios from "axios";
 import { API_URL } from "../../helpers/URL";
 import { useSelector, useDispatch } from "react-redux";
-import { setClassStudents } from "../../store/genralUser";
+import { setClassStudents } from "../../store/generalUser";
 import ProfileSideBar from "../Common/SideBars/ProfileSideBar";
 import { Rings } from "react-loader-spinner";
 export default function Student() {

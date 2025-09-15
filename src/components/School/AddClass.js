@@ -8,7 +8,7 @@ import ClassDetailPage from "./AddClassPages/ClassDetailPage";
 import SubjectDetailPage from "./AddClassPages/SubjectDetailPage";
 import StudentDetailPage from "./AddClassPages/StudentDetailPage";
 import OverviewPage from "./AddClassPages/OverviewPage";
-import { setSuccessToast, setWarningToast } from "../../store/genralUser";
+import { setSuccessToast, setWarningToast } from "../../store/generalUser";
 import { getAllSchoolData, getLatestClassroom } from "./helpers/dataFetcher";
 import { API_URL } from "../../helpers/URL";
 

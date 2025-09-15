@@ -1,16 +1,26 @@
-import { setWarningToast } from "../store/genralUser";
+import { setWarningToast } from "../store/generalUser";
 
 function onlyNumbers(str) {
   return /^[0-9]*$/.test(str);
 }
 
-export function validateStudent(firstName,lastName, dateOfAdmission, acountNo, profileImage, mobileNO, email, dispatch){
+export function validateStudent(
+  firstName,
+  lastName,
+  dateOfAdmission,
+  acountNo,
+  profileImage,
+  mobileNO,
+  email,
+  dispatch,
+  requireProfileImage = true
+) {
     if (
         firstName.length === 0 ||
         lastName.length === 0 ||
         dateOfAdmission.length === 0 ||
         acountNo.length === 0 ||
-        !profileImage
+        (requireProfileImage && !profileImage)
       ) {
         dispatch(setWarningToast("Fill complete Details"));
    

@@ -3,11 +3,11 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../helpers/URL";
 import { useSelector, useDispatch } from "react-redux";
-import { setNotice } from "../../store/genralUser";
+import { setNotice } from "../../store/generalUser";
 import { GrNext } from "react-icons/gr";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import SideRectange from "../../assets/icons/SideRetangle";
-import AnouncementIcon from "../../assets/icons/AnouncementIcon";
+import AnnouncementIcon from "../../assets/icons/AnnouncementIcon";
 const monthNames = [
   "Jan",
   "Feb",
@@ -37,7 +37,7 @@ export default function NoticePannel({ setOpenAddNoticeModal }) {
       <div className=" px-4">
         <div className="pb-2 flex justify-between items-center border-b mx-2">
           <h1 className=" text-2xl font-semibold text-left">
-            Anouncement board
+            Announcement board
           </h1>
           <span
             onClick={() => setOpenAddNoticeModal(true)}
@@ -69,7 +69,7 @@ export default function NoticePannel({ setOpenAddNoticeModal }) {
                   <div className="flex flex-col">
                     <span className="font-sans font-medium uppercase text-md sm:text-xl text-[#020410] flex flex-row items-center">
                       <div className="mr-4">
-                        <AnouncementIcon />
+                        <AnnouncementIcon />
                       </div>{" "}
                       {notice.title}
                     </span>

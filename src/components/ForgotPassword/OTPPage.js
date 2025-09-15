@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 import { useDispatch } from "react-redux";
-import { setWarningToast } from "../../store/genralUser";
+import { setWarningToast } from "../../store/generalUser";
 export default function OTPPage({ password, setPassword, updatePassword,OTP, setOTP, loading }) {
   const dispatch = useDispatch();
   const [passwordVisibility, setPasswordVisibility] = useState(false);

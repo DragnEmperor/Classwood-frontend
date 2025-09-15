@@ -34,7 +34,6 @@ export const userSlice = createSlice({
       state.events = action.payload;
     },
     setTestStudent: (state, action) => {
-      console.log("called", action.payload);
       state.testStudents = action.payload;
     },
     updateSubjectMarks: (state, action) => {
@@ -46,8 +45,7 @@ export const userSlice = createSlice({
     updatePercentage: (state, action) => {
       state.testStudents[action.payload.id].percentage = action.payload.value;
     },
-    updateMakrsheet: (state, action) => {
-      console.log(action.payload.id, action.payload.value);
+    updateMarksheet: (state, action) => {
       state.testStudents[action.payload.id].marksheet = action.payload.value;
     },
     setSession: (state, action) => {
@@ -72,7 +70,7 @@ export const {
   updatePercentage,
   updateSubjectMarks,
   updateTotalMarks,
-  updateMakrsheet,
+  updateMarksheet,
   setProfileData
 } = userSlice.actions;
 

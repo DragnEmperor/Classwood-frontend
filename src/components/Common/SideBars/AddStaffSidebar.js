@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { GoLocation } from "react-icons/go";
 import { RxCross1 } from "react-icons/rx";
-import { setWarningToast, setSuccessToast } from "../../../store/genralUser";
+import { setWarningToast, setSuccessToast } from "../../../store/generalUser";
 import {
   BsFillPersonFill,
   BsFillCalendar2DateFill,
@@ -39,6 +39,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
   const [adharNumber, setAdharNumber] = useState("");
   const [staffId, setStaffId] = useState("");
   const [isClassTeacher, setIsClassTeacher] = useState(true);
+  const genderValue = String(gender.id || (gender.name === "Male" ? 1 : 2));
   useEffect(() => {
     if (staffData) {
       // console.log(staffData);
@@ -66,40 +67,37 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
 
   const submit = async () => {
     if (!staffData) {
-      console.log("new staff adding");
-      
       if (
         firstName.length === 0 ||
         lastName.length === 0 ||
         dateOfJoining.length === 0 ||
         acountNo.length === 0
       ) {
-        dispatch(setWarningToast("Fill complete Details"));
+        dispatch(setWarningToast("Fill the required details (*)"));
       } else if (mobileNO < 1000000000)
         dispatch(setWarningToast("Mobile no should be atleast 10 digits"));
       else if (mobileNO.length > 12)
         dispatch(setWarningToast("Phone number should be at max 12 digits"));
       else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
         dispatch(setWarningToast("Invalid email address"));
-      } else if (!profileImage) {
-        dispatch(setWarningToast("Please select a profile picture"));
       } else {
         setLoading(true);
         try {
           const token = localStorage.getItem("token");
-          console.log(token);
           const formData = new FormData();
-          formData.append("profile_pic", profileImage);
+          if (profileImage) {
+            formData.append("profile_pic", profileImage);
+          }
           formData.append("first_name", firstName);
           formData.append("last_name", lastName);
-          formData.append("gender", gender === "Male" ? "1" : "2");
+          formData.append("gender", genderValue);
           formData.append("mobile_number", mobileNO.toString(10));
           formData.append("contact_email", email);
           formData.append("date_of_joining", dateOfJoining);
           formData.append("date_of_birth", dob);
           formData.append("address", address);
           formData.append("account_no", acountNo);
-          formData.append("staddId", staffId);
+          formData.append("staff_id", staffId);
           formData.append("adhar", adharNumber);
           formData.append("ifsc_code", ifscCode);
           formData.append("is_teaching_staff", isClassTeacher);
@@ -111,9 +109,8 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
               session : localStorage.getItem("session")
             }
           });
-          console.log("This is the response : ", res);
           if (res.status === 201) {
-            dispatch(setSuccessToast("Staff added SUccessfully"));
+            dispatch(setSuccessToast("Staff added Successfully"));
           }
           if(res.status ===200){
             dispatch(setWarningToast("Staff with same Details detected"));
@@ -131,24 +128,23 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
         lastName.length === 0 ||
         dateOfJoining.length === 0
       ) {
-        dispatch(setWarningToast("Fill complete Details"));
+        dispatch(setWarningToast("Fill the required details (*)"));
       } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
         dispatch(setWarningToast("Invalid email address"));
-      } else if (!profileImage) {
-        dispatch(setWarningToast("Please select a profile picture"));
       } else if (mobileNO.length > 12)
         dispatch(setWarningToast("Phone number should be at max 12 digits"));
       else {
         try {
       setLoading(true);
-
           const token = localStorage.getItem("token");
           // console.log(token);
           const formData = new FormData();
-          formData.append("profile_pic", profileImage);
+          if (profileImage) {
+            formData.append("profile_pic", profileImage);
+          }
           formData.append("first_name", firstName);
           formData.append("last_name", lastName);
-          formData.append("gender", gender === "Male" ? "1" : "2");
+          formData.append("gender", genderValue);
           formData.append("mobile_number", mobileNO.toString(10));
           formData.append("contact_email", email);
           formData.append("date_of_joining", dateOfJoining);
@@ -156,13 +152,13 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
           formData.append("date_of_birth", dob);
           formData.append("address", address);
           formData.append("account_no", acountNo);
-          formData.append("staddId", staffId);
+          formData.append("staff_id", staffId);
           formData.append("adhar", adharNumber);
           formData.append("ifsc_code", ifscCode);
           formData.append("is_teaching_staff", isClassTeacher);
 
 
-          const res = await axios.put(
+          const res = await axios.patch(
             API_URL + "list/staff/" + staffData.user.id + "/",
             formData,
             {
@@ -173,7 +169,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
           );
 
           if (res.status === 200) {
-            dispatch(setSuccessToast("Staff Updated added"));
+            dispatch(setSuccessToast("Staff Updated"));
             // console.log("response returned", res);
           }
         } catch (e) {
@@ -233,7 +229,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
                 <BsFillPersonFill className="w-8 h-8 mr-4 text-indigo-700" />
                 <div className="flex flex-col items-start justify-center">
                   <span className="mb-1 font-semibold text-gray-800 text-md">
-                    First Name
+                    First Name*
                   </span>
                   <input
                     onChange={(e) => setFirstName(e.target.value)}
@@ -266,7 +262,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
                 <AiOutlinePhone className="w-8 h-8 mr-4 text-indigo-700" />
                 <div className="flex flex-col items-start justify-center">
                   <span className="mb-1 font-semibold text-gray-800 text-md">
-                    Phone Number
+                    Phone Number*
                   </span>
                   <input
                     onChange={(e) => setMobileNo(e.target.value)}
@@ -283,7 +279,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
                 <BsBriefcase className="w-8 h-8 mr-4 text-indigo-700" />
                 <div className="flex flex-col items-start justify-center ">
                   <span className="mb-1 font-semibold text-gray-800 text-md">
-                    Email Address
+                    Email Address*
                   </span>
                   <input
                     onChange={(e) => setEmail(e.target.value)}
@@ -300,7 +296,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
                 <BsBriefcase className="w-8 h-8 mr-4 text-indigo-700" />
                 <div className="flex flex-col items-start justify-center w-full">
                   <span className="mb-1 font-semibold text-gray-800 text-md">
-                    Adhar Number
+                    Aadhar Number
                   </span>
                   <input
                     onChange={(e) => setAdharNumber(e.target.value)}
@@ -346,7 +342,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
                 <AiFillBank className="w-8 h-8 mr-4 text-indigo-700" />
                 <div className="flex flex-col items-start justify-center ">
                   <span className="mb-1 font-semibold text-gray-800 text-md">
-                    Account Number
+                    Account Number*
                   </span>
                   <input
                     onChange={(e) => setAcountNo(e.target.value)}
@@ -393,7 +389,7 @@ export default function AddStaff({ setOpenAddProfile, staffData }) {
                 <BsFillCalendar2DateFill className="w-8 h-8 mr-4 text-indigo-700" />
                 <div className="flex flex-col items-start justify-center">
                   <span className="mb-1 font-semibold text-gray-800 text-md">
-                    Date of Joining
+                    Date of Joining*
                   </span>
                   <input
                     onChange={(e) => setDateOfJoining(e.target.value)}

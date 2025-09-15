@@ -3,7 +3,7 @@ import { RxCross1 } from "react-icons/rx";
 import BreakSingleRow from "./breakSingleRow";
 import axios from "axios";
 import { API_URL } from "../../../helpers/URL";
-import { setSuccessToast, setWarningToast } from "../../../store/genralUser";
+import { setSuccessToast, setWarningToast } from "../../../store/generalUser";
 import { useDispatch, useSelector } from "react-redux";
 import { Rings } from "react-loader-spinner";
 import TimeDropDown from "./TimeDropDown";

@@ -12,7 +12,6 @@ export const classroomSlice = createSlice({
   },
   reducers: {
     addAllClassroom: (state, action) => {
-  
       state.allClasses = action.payload;
       state.noOfClasses = action.payload.length
     },

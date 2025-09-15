@@ -7,7 +7,7 @@ import { API_URL } from "../../../helpers/URL";
 import SingleEntry from "./SingleEntry";
 import { useDispatch, useSelector } from 'react-redux';
 import { Rings } from "react-loader-spinner";
-import {setSuccessToast, setTestStudent, setWarningToast} from "../../../store/genralUser";
+import {setSuccessToast, setTestStudent, setWarningToast} from "../../../store/generalUser";
 
 export default function AddExamResult() {
   const dispatch = useDispatch();

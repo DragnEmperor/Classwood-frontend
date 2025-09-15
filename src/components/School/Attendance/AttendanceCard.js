@@ -27,7 +27,7 @@ export default function AttendanceCard({ classData }) {
       let presents = 0;
       let absents = 0;
       for(let i in res.data){
-        let val = JSON.parse(res.data[i].month_attendance)[today-1];
+        let val = res.data[i].month_attendance[today-1];
         console.log(val)
         if(val===2) presents++;
         if(val===1) absents++;

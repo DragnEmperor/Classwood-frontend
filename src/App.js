@@ -1,17 +1,21 @@
-import React,{useEffect, useState} from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+
 import LandingPage from "./pages/LandingPage";
-import { useSelector,useDispatch } from "react-redux";
-import axios from "axios";
-import { loginUser } from "./store/genralUser";
+import Login from "./pages/login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import NotFound from "./pages/NotFound";
+
 import SuccessToast from "./components/UI/SuccessToast";
 import WarningToast from "./components/UI/WarningToast";
-import { setSuccessToast } from "./store/genralUser";
-import Login from "./pages/login";
-import Register from './pages/Register';
-import NotAuthorized from "./components/NotAuthorized";
-import ForgotPassword from "./pages/ForgotPassword";
-// Student Pages Imports
+import ProtectedRoute from "./components/Common/ProtectedRoute";
+
+import { loginUser, setSuccessToast, setProfileData } from "./store/generalUser";
+import { useAccount } from "./api/hooks/useAccount";
+
+// Student Pages
 import StudentDashboard from "./components/Student/Dashboard";
 import StudentSubjects from "./components/Student/Subjects";
 import StudentTest from "./components/Student/Test";
@@ -19,22 +23,22 @@ import StudentFees from "./components/Student/FeesPayment";
 import StudentChat from "./components/Student/Message";
 import StudentNoticeFullPageView from "./components/Student/NoticeFullPageView";
 import StudentEventFullPageView from "./components/Student/EventFullPageView";
-// School Pages Imports
+
+// School Pages
 import SchoolDashboard from "./components/School/Dashboard";
 import AllStaff from "./components/School/Staff";
 import AllStudent from "./components/School/Student";
-import AllSubjects from "./components/School/AllSubjects"
+import AllSubjects from "./components/School/AllSubjects";
 import SchoolClassroom from "./components/School/Classroom";
-import StartPay from "./components/School/StartPay";
 import AddClass from "./components/School/AddClass";
 import TestResult from "./components/School/Exam/main";
 import Attendance from "./components/School/Attendance/Attendance";
 import SchoolTimetable from "./components/School/Timetable/Timetable";
-import FeesPage from "./components/School/Fees/main";
+import FeesManagement from "./components/School/Fees/FeesManagement";
 import SchoolNoticeFullPageView from "./components/School/NoticeFullPageView";
 import SchoolEventFullPageView from "./components/School/EventFullPageView";
-import ViewFees from "./components/School/Fees/ViewFees";
-// Staff Pages Import
+
+// Staff Pages
 import StaffDashboard from "./components/Staff/Dashboard";
 import StaffAllClassrooms from "./components/Staff/Classroom";
 import SingleClassStudents from "./components/Staff/Students";
@@ -42,89 +46,108 @@ import StaffNoticeFullPageView from "./components/Staff/NoticeFullPageView";
 import StaffEventFullPageView from "./components/Staff/EventFullPageView";
 import StaffTestExam from "./components/Staff/Exam/main";
 import StaffTimeTable from "./components/Staff/TimeTable/TimeTable";
+
 import "./App.css";
 
-import { setProfileData } from "./store/genralUser";
-import { API_URL } from "./helpers/URL";
+const studentRoutes = [
+  ["/student/dashboard", <StudentDashboard />],
+  ["/student/subject", <StudentSubjects />],
+  ["/student/test", <StudentTest />],
+  ["/student/message", <StudentChat />],
+  ["/student/fees", <StudentFees />],
+  ["/student/notice/:id", <StudentNoticeFullPageView />],
+  ["/student/event/:id", <StudentEventFullPageView />],
+];
+
+const schoolRoutes = [
+  ["/school/dashboard", <SchoolDashboard />],
+  ["/school/students", <AllStudent />],
+  ["/school/staff", <AllStaff />],
+  ["/school/classroom", <SchoolClassroom />],
+  ["/school/subject", <AllSubjects />],
+  ["/school/addclass", <AddClass />],
+  ["/school/test", <TestResult />],
+  ["/school/attendence", <Attendance />],
+  ["/school/timetable", <SchoolTimetable />],
+  ["/school/fees", <FeesManagement />],
+  ["/school/notice/:id", <SchoolNoticeFullPageView />],
+  ["/school/event/:id", <SchoolEventFullPageView />],
+];
+
+const staffRoutes = [
+  ["/staff/dashboard", <StaffDashboard />],
+  ["/staff/classroom", <StaffAllClassrooms />],
+  ["/staff/students", <SingleClassStudents />],
+  ["/staff/notice/:id", <StaffNoticeFullPageView />],
+  ["/staff/event/:id", <StaffEventFullPageView />],
+  ["/staff/test", <StaffTestExam />],
+  ["/staff/timetable", <StaffTimeTable />],
+];
+
 export default function App() {
   const dispatch = useDispatch();
-
   const UserType = useSelector((state) => state.user.UserType);
-  useEffect(()=>{
+  const currentUserType = UserType || localStorage.getItem("UserType") || "";
+  const hasToken = !!localStorage.getItem("token");
 
-    if(localStorage.getItem("UserType")){
-      dispatch(loginUser(localStorage.getItem("UserType")))
+  useEffect(() => {
+    const storedUserType = localStorage.getItem("UserType");
+    if (storedUserType && !UserType) {
+      dispatch(loginUser(storedUserType));
     }
-    if(UserType){
-      dispatch(setSuccessToast("Loged in successfully"));
+    if (UserType) {
+      dispatch(setSuccessToast("Logged in successfully"));
+    }
+  }, [dispatch, UserType]);
 
-      
-    }
-  },[UserType])
-  useEffect(()=>{
-    if(localStorage.getItem("UserType")==="School"){
-      getuserCredentials();
-    }
-  },[localStorage.getItem("UserType")])
-  const getuserCredentials = async () =>{
-    const acountData = await  axios.get(API_URL + "account/", 
-    {
-      headers : {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      }
-    }
-  )
-  dispatch(setProfileData(acountData.data));
-  }
+  const { data: accountData } = useAccount({
+    enabled: currentUserType === "School" && hasToken,
+  });
+
+  useEffect(() => {
+    if (accountData) dispatch(setProfileData(accountData));
+  }, [accountData, dispatch]);
+
   return (
     <Router>
       <SuccessToast />
       <WarningToast />
-      <div>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Students links  */}
-          <Route path="/student/dashboard" element={localStorage.getItem("UserType")!=="Student"? <NotAuthorized /> : <StudentDashboard />} />
-          <Route path="/student/subject" element={localStorage.getItem("UserType")!=="Student"? <NotAuthorized /> : <StudentSubjects />} />
-          <Route path="/student/test" element={localStorage.getItem("UserType")!=="Student"? <NotAuthorized /> : <StudentTest />} />
-          <Route path="/student/message" element={localStorage.getItem("UserType")!=="Student"? <NotAuthorized /> : <StudentChat />} />
-          <Route path="/student/fees" element={localStorage.getItem("UserType")!=="Student"? <NotAuthorized /> : <StudentFees />} />
-          <Route path="/student/notice/:id" element={localStorage.getItem("UserType")!=="Student" ? <NotAuthorized /> : <StudentNoticeFullPageView /> } />
-          <Route path="/student/event/:id" element={localStorage.getItem("UserType")!=="Student" ? <NotAuthorized /> : <StudentEventFullPageView /> } />
+        {studentRoutes.map(([path, element]) => (
+          <Route
+            key={path}
+            path={path}
+            element={<ProtectedRoute role="Student">{element}</ProtectedRoute>}
+          />
+        ))}
 
-          {/* School Links */}
-          <Route path="/school/dashboard" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <SchoolDashboard /> : <StartPay />} />
-          <Route path="/school/students" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <AllStudent /> : <StartPay />} />
-          <Route path="/school/staff" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <AllStaff /> : <StartPay />} />
-          <Route path="/school/classroom" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <SchoolClassroom /> : <StartPay />} />
-          <Route path="/school/subject" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <AllSubjects /> : <StartPay />} />
-          <Route path="/school/addclass" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <AddClass /> : <StartPay />} />
-          <Route path="/school/test" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <TestResult /> : <StartPay />} />
-          <Route path="/school/attendence" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <Attendance /> : <StartPay />} />
-          <Route path="/school/timetable" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <SchoolTimetable /> : <StartPay />} />
-          
-          <Route path="/school/fees" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <ViewFees /> : <StartPay />} />
-          <Route path="/school/addfees" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ? <FeesPage /> : <StartPay />} />
-          <Route path="/school/notice/:id" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true) ?  <SchoolNoticeFullPageView /> : <StartPay />} />
-          <Route path="/school/event/:id" element={localStorage.getItem("UserType")!=="School"? <NotAuthorized /> : (localStorage.getItem("Payed")  || true)  ?  <SchoolEventFullPageView /> : <StartPay />} />
+        {schoolRoutes.map(([path, element]) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedRoute role="School" requirePaid>
+                {element}
+              </ProtectedRoute>
+            }
+          />
+        ))}
 
+        {staffRoutes.map(([path, element]) => (
+          <Route
+            key={path}
+            path={path}
+            element={<ProtectedRoute role="Staff">{element}</ProtectedRoute>}
+          />
+        ))}
 
-          {/* Staff Links */}
-          <Route path="/staff/dashboard" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <StaffDashboard />} />
-          <Route path="/staff/classroom" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <StaffAllClassrooms />} />
-          <Route path="/staff/students" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <SingleClassStudents />} />
-          <Route path="/staff/notice/:id" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <StaffNoticeFullPageView />} />
-          <Route path="/staff/event/:id" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <StaffEventFullPageView />} />
-          <Route path="/staff/test" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <StaffTestExam />} />
-          <Route path="/staff/timetable" element={localStorage.getItem("UserType")!=="Staff"? <NotAuthorized /> : <StaffTimeTable />} />
-          
-          
-          <Route path="/" element={<LandingPage />} />
-        </Routes>
-      </div>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </Router>
   );
 }

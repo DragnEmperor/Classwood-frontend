@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 import { Link } from "react-router-dom";
-import { setWarningToast } from "../../store/genralUser";
+import { setWarningToast } from "../../store/generalUser";
 import { useDispatch } from "react-redux";
 export default function EmailTab({
   email,
@@ -21,12 +21,14 @@ export default function EmailTab({
     useState(false);
 
   function goToNextPage() {
-    if (schoolName.length === 0 || email.length === 0 || password.length < 8) {
-      dispatch(setWarningToast("Please fill details completely !"));
+    if (schoolName.length === 0 || email.length === 0) {
+      dispatch(setWarningToast("Please fill details completely!"));
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
       dispatch(setWarningToast("Invalid email address"));
-    } else if (password !== confirmpassword)
-      dispatch(setWarningToast("Password and confirm Password didn't matched"));
+    } else if (password.length < 8)
+      dispatch(setWarningToast("Password must be at least 8 characters long"));
+    else if (password !== confirmpassword)
+      dispatch(setWarningToast("Password and confirm password do not match"));
     else setPageState(1);
   }
   return (

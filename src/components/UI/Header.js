@@ -8,9 +8,17 @@ export default function Header() {
   const [menuDrop, setmenuDrop] = useState(false);
   const [isLogedIn, setIsLogedIn] = useState(localStorage.getItem("UserType") ? true : false);
   const [scrolled, setScrolled] = useState();
+  const userType = localStorage.getItem("UserType") || "";
+  const dashboardPath = userType ? `/${userType.toLowerCase()}/dashboard` : "/login";
   const classes = classNames("header", {
     scrolled: scrolled,
   });
+  const logout = () => {
+    localStorage.removeItem("UserType");
+    localStorage.removeItem("Payed");
+    localStorage.removeItem("token");
+    setIsLogedIn(false);
+  };
   useEffect((_) => {
     const handleScroll = (_) => {
       if (window.pageYOffset > 1) {
@@ -146,20 +154,14 @@ export default function Header() {
              {isLogedIn ?  <>
               <Link
                   className="cursor-pointer hidden sm:inline-flex text-white bg-black hover:bg-transparent hover:text-black border-4 border-black focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-4 rounded-l-full "
-                  to= {`${localStorage.getItem("UserType").toLowerCase()}` + "/dashboard"}
+                  to={dashboardPath}
 
                 >
                   Dashboard
                 </Link>
                 <span
                   className="cursor-pointer hidden sm:inline-flex text-black hover:text-white bg-transparent border-black border-4 hover:bg-black   focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 rounded-r-full"
-                  onClick={()=>{
-                    console.log("clicked");
-                    localStorage.removeItem("UserType");
-                    localStorage.removeItem("Payed");
-                    localStorage.removeItem("token");
-                    setIsLogedIn(false);
-                  }}
+                  onClick={logout}
                   >
                   Logout
                 </span>
@@ -183,7 +185,7 @@ export default function Header() {
         </div>
       </div>
 
-      <div className={` ${menuDrop? " hidden" : undefined} bg-white sm:hidden  `} id="mobile-menu">
+      <div className={`${menuDrop ? "" : "hidden"} bg-white sm:hidden`} id="mobile-menu">
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link
             to="#"
@@ -211,9 +213,22 @@ export default function Header() {
             Help
           </Link>
           {/* {% if user.is_authenticated %} */}
-          {localStorage.getItem("UserType") ? <><Link
+          {isLogedIn ? <>
+          <Link
             className="flex width-full text-white bg-black border-4 border-black hover:bg-transparent hover:text-black  focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0  mb-4 "
-            to="/"
+            to={dashboardPath}
+          >
+            Dashboard
+          </Link>
+          <button
+            className="flex width-full text-black hover:text-white border-4 border-black bg-transparent hover:bg-black focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 "
+            onClick={logout}
+          >
+            Logout
+          </button></> : <>
+          <Link
+            className="flex width-full text-white bg-black border-4 border-black hover:bg-transparent hover:text-black  focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0  mb-4 "
+            to="/register"
           >
             Get started
           </Link>
@@ -222,18 +237,6 @@ export default function Header() {
             to="/login"
           >
             Login
-          </Link></> : <>
-          <Link
-            className="flex width-full text-white bg-black border-4 border-black hover:bg-transparent hover:text-black  focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0  mb-4 "
-            to= { "/" + localStorage.getItem("UserType") + "/dashboard" }
-          >
-            Dashboard
-          </Link>
-          <Link
-            className="flex width-full text-black hover:text-white border-4 border-black bg-transparent hover:bg-black focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 "
-            to="/login"
-          >
-            Logout
           </Link>
           </>}
           {/* {% endif %} */}

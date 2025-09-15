@@ -6,7 +6,7 @@ import { API_URL } from "../../../helpers/URL";
 import { removeClass } from "../../../store/School/classroomSlice";
 import PopUpMenu from "../../UI/PopUpMenu";
 
-import { setSuccessToast } from "../../../store/genralUser";
+import { setSuccessToast } from "../../../store/generalUser";
 export default function ClassroomRow({
   classData,
   setOpenSidebar,

@@ -1,5 +1,5 @@
 import React from "react";
-import {setWarningToast} from "../../store/genralUser";
+import {setWarningToast} from "../../store/generalUser";
 import { useDispatch } from "react-redux";
 import SelectionDropdown from "../UI/SelectionDropdown";
 import { boardList, stateList } from "../../helpers/inputLists";

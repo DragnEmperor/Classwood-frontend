@@ -4,7 +4,7 @@ import axios from "axios";
 
 import { API_URL } from "../../helpers/URL";
 import TeacherDropdown from "./helpers/TeacherDropDown";
-import { setSuccessToast, setWarningToast } from "../../store/genralUser";
+import { setSuccessToast, setWarningToast } from "../../store/generalUser";
 
 export default function EditClassroom({ setOpen,classroom }) {
   

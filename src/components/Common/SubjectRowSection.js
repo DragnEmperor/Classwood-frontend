@@ -1,7 +1,7 @@
 import React from "react";
 import ClassroomRow from "./Rows/ClassroomRow";
 import SubjectRow from "./Rows/SubjectRow";
-import { API_URL } from "../../helpers/URL";
+import { buildMediaUrl } from "../../helpers/URL";
 import { saveAs } from "file-saver";
 export default function SubjectRowSection({
     classCumilativeName,
@@ -11,7 +11,7 @@ export default function SubjectRowSection({
     const downloadFile = (subject) => {
         for (let i in subject.attachments) {
           const element =
-            API_URL.substring(0, API_URL.length - 5) + subject.attachments[i];
+            buildMediaUrl(subject.attachments[i]);
           saveAs(element, subject.subject_name + ".pdf");
         }
       };

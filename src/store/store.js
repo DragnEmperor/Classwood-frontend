@@ -15,9 +15,11 @@ import staffUserSlice from './Staff/UserSlice';
 import studentUserSlice from "./Student/UserSlice";
 
 // Genral Slice
-import userSlice from './genralUser';
+import userSlice from './generalUser';
+import authSlice from './auth';
 export default configureStore({
   reducer: {
+      auth : authSlice,
       staff : staffSlice,
       classroom : classroomSlice,
       user : userSlice,

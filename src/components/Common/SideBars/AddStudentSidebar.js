@@ -17,7 +17,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { validateStudent } from "../../../helpers/ValidateStudent";
 import { useNavigate } from "react-router-dom";
 import {getAllSchoolData} from "../../School/helpers/dataFetcher";
-import { setLoading, setSuccessToast, setWarningToast } from "../../../store/genralUser";
+import { setLoading, setSuccessToast, setWarningToast } from "../../../store/generalUser";
 import { genderList } from "../../../helpers/inputLists";
 
 export default function AddStudent({ setOpenAddProfile, classroom, subjects, studentData }) {
@@ -42,6 +42,7 @@ export default function AddStudent({ setOpenAddProfile, classroom, subjects, stu
   const [fatherName, setFatherName] = useState("");
   const [rollNo, setRollNo] = useState("");
   const dispatch = useDispatch();
+  const genderValue = String(gender.id || (gender.name === "Male" ? 1 : 2));
 
   function resetForm(){
     setProfileImage(null);
@@ -98,15 +99,16 @@ export default function AddStudent({ setOpenAddProfile, classroom, subjects, stu
   const submit = async () => {
       setLoading(true);
       if(studentData){
-        if(validateStudent(firstName,lastName, dateOfAdmission, acountNo, profileImage, mobileNO, email, dispatch)){
+        if(validateStudent(firstName,lastName, dateOfAdmission, acountNo, profileImage, parentMobileNO, email, dispatch, false)){
           try {
             const token = localStorage.getItem("token");
             const formData = new FormData();
-            formData.append("profile_pic", profileImage);
+            if (profileImage) {
+              formData.append("profile_pic", profileImage);
+            }
             formData.append("first_name", firstName);
             formData.append("last_name", lastName);
-            formData.append("gender", gender === "Male" ? "1" :  "2");
-            formData.append("mobile_number", mobileNO.toString(10));
+            formData.append("gender", genderValue);
             formData.append("contact_email", email);
             formData.append("date_of_admission", dateOfAdmission);
             formData.append("roll_no", rollNo);
@@ -115,7 +117,7 @@ export default function AddStudent({ setOpenAddProfile, classroom, subjects, stu
             formData.append("mother_name",motherName);
             formData.append("date_of_birth", dob);
             formData.append("address", address);
-            formData.append("account_no", acountNo);
+            formData.append("parent_account_no", acountNo);
             formData.append("admission_no", admissionNo);
            
             const res = await axios.patch(
@@ -128,10 +130,10 @@ export default function AddStudent({ setOpenAddProfile, classroom, subjects, stu
               }
             );
               console.log("This is the response :  ", res);
-              if(res.status===200 && res.data.non_field_errors[0] === 'The fields school, roll_no, admission_no, classroom must make a unique set.'){
+              if(res.status===200 && res.data.non_field_errors && res.data.non_field_errors[0] === 'The fields school, roll_no, admission_no, classroom must make a unique set.'){
                 dispatch(setWarningToast("Admission Number must be unique"));
               }
-            if (res.status === 201) {
+            if (res.status === 200) {
               dispatch(setSuccessToast("Student Updated Successfully"));
               console.log("response returned", res);
               resetForm();
@@ -143,15 +145,14 @@ export default function AddStudent({ setOpenAddProfile, classroom, subjects, stu
       }
       else {
         console.log("Adding new student");
-        if(validateStudent(firstName,lastName, dateOfAdmission, acountNo, profileImage, mobileNO, email, dispatch)){
+        if(validateStudent(firstName,lastName, dateOfAdmission, acountNo, profileImage, parentMobileNO, email, dispatch)){
           try {
             const token = localStorage.getItem("token");
             const formData = new FormData();
             formData.append("profile_pic", profileImage);
             formData.append("first_name", firstName);
             formData.append("last_name", lastName);
-            formData.append("gender", gender === "Male" ? "1" :  "2");
-            formData.append("mobile_number", mobileNO.toString(10));
+            formData.append("gender", genderValue);
             formData.append("contact_email", email);
             formData.append("date_of_admission", dateOfAdmission);
             formData.append("roll_no", rollNo);

@@ -3,14 +3,18 @@ import { addAllClassroom } from "../../../store/School/classroomSlice";
 import { addAllStudent } from "../../../store/School/studentSlice";
 import { API_URL } from "../../../helpers/URL";
 import { addAllSyllabus } from "../../../store/School/syllabusSlice";
-import { setNotice } from "../../../store/genralUser";
+import { setNotice } from "../../../store/generalUser";
 import axios from "axios";
 
 export async function getAllSchoolData(dispatch, navigate, setLoading, session) {
-  // const session = useSelector((state) => state.user.session);
-console.log("session", session);
-  setLoading(true);
+  const updateLoading = typeof setLoading === "function" ? setLoading : () => {};
+  updateLoading(true);
   const token = localStorage.getItem("token");
+  const sessionId = session?.id || localStorage.getItem("session");
+  if (!sessionId) {
+    updateLoading(false);
+    return;
+  }
   try {
    
     const resStaff = await axios.get(API_URL + "list/staff/", {
@@ -18,7 +22,7 @@ console.log("session", session);
         Authorization: `Bearer ${token}`,
       },
       params: {
-          session: session.id,
+          session: sessionId,
       },
     });
 
@@ -27,7 +31,7 @@ console.log("session", session);
         Authorization: `Bearer ${token}`,
       },
       params: {
-        session: session.id,
+        session: sessionId,
     },
     });
     const resStudent = await axios.get(API_URL + "staff/student/", {
@@ -35,7 +39,7 @@ console.log("session", session);
         Authorization: `Bearer ${token}`,
       },
       params: {
-        session: session.id,
+        session: sessionId,
     },
     });
     const syllabusRes = await axios.get(API_URL + "staff/syllabus/",{
@@ -43,7 +47,7 @@ console.log("session", session);
         Authorization: `Bearer ${token}`,
       },
       params: {
-        session: session.id,
+        session: sessionId,
     },
     })
 
@@ -52,10 +56,9 @@ console.log("session", session);
         Authorization: `Bearer ${token}`,
       },
       params: {
-        session: session.id,
+        session: sessionId,
     },
     });
-    console.log(resNotice.data)
     dispatch(setNotice(resNotice.data));
     dispatch(addAllSyllabus(syllabusRes.data))
     dispatch(addAllStaff(resStaff.data));
@@ -63,19 +66,21 @@ console.log("session", session);
     dispatch(addAllStudent(resStudent.data));
     
   } catch (e) {
-    console.log("error : ", e);
     if (e.response && e.response.status === 401) {
-      console.log("this is unotherized");
       localStorage.removeItem("UserType");
+      localStorage.removeItem("token");
+      localStorage.removeItem("Payed");
+      localStorage.removeItem("session");
       navigate(`/`);
     }
   }
-  setLoading(false);
+  updateLoading(false);
 
 
 }
 export async function getLatestClassroom(dispatch, navigate,setLoading){
-  setLoading(true);
+  const updateLoading = typeof setLoading === "function" ? setLoading : () => {};
+  updateLoading(true);
   const token = localStorage.getItem("token");
   try {
     const resClassroom = await axios.get(API_URL + "list/classroom/", {
@@ -86,12 +91,14 @@ export async function getLatestClassroom(dispatch, navigate,setLoading){
     dispatch(addAllClassroom(resClassroom.data));
 
   } catch (e){
-    if (e.respons && e.response.status === 401) {
-      console.log("this is unotherized");
+    if (e.response && e.response.status === 401) {
       localStorage.removeItem("UserType");
+      localStorage.removeItem("token");
+      localStorage.removeItem("Payed");
+      localStorage.removeItem("session");
       navigate(`/`);
     }
   }
-  setLoading(false);
+  updateLoading(false);
 
 }

@@ -10,7 +10,7 @@ import { Rings } from "react-loader-spinner";
 import SingleRow from "./SingleRow";
 import BreakSidebar from "./breakSidebar";
 import { addTimetableRow, refreshTimetableRow } from "../../../store/School/timetableSlice";
-import { setSuccessToast, setWarningToast } from "../../../store/genralUser";
+import { setSuccessToast, setWarningToast } from "../../../store/generalUser";
 
 const tabs = [
   "Monday",

@@ -1,11 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import { BiBook } from "react-icons/bi";
 import { MdNavigateNext } from "react-icons/md";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Layout from "./Layout";
 import NoticePannel from "../Common/NoticePannel";
 import EventPannel from "../Common/EventPannel";
-export default function StudentDashboard() {
+import { API_URL } from "../../helpers/URL";
+
+export default function StaffDashboard() {
+  const navigate = useNavigate();
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [staffData, setStaffData] = useState({ subjects: [] });
+
+  useEffect(() => {
+    const fetchRecentPayments = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(API_URL + "list/payments/?limit=10", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 200) {
+          setRecentPayments(res.data.payments || []);
+        }
+      } catch (error) {
+        console.error("Error fetching payments:", error);
+      }
+    };
+    fetchRecentPayments();
+  }, []);
   return (
     <Layout>
       <div className="flex flex-col my-10 min-[1200px]:flex-row md:px-10 min-[1200px]:px-0">
@@ -16,45 +40,25 @@ export default function StudentDashboard() {
           {/* Subject */}
           <div className="mx-4 mt-10 md:mx-0">
             <div className="flex justify-between">
-              <p className="text-3xl font-semibold">Subjests</p>
+              <p className="text-3xl font-semibold">Subjects</p>
               <p className="text-lg text-[#5F6368] flex flex-row items-center">
                 View All <MdNavigateNext />{" "}
               </p>
             </div>
             <div className="flex justify-between mt-8">
-              <div className="flex flex-col p-4 bg-white rounded-xl border-[1px] border-[#D9D9D9] w-56 min-[1200px]:w-40 xl:w-56 min-[1700px]:w-64 mr-4">
+              {staffData.subjects && staffData.subjects.map((subject, index)=>{
+                return <div key={index} className="flex flex-col p-4 bg-white rounded-xl border-[1px] border-[#D9D9D9] w-56 min-[1200px]:w-40 xl:w-56 min-[1700px]:w-64 mr-4">
                 <div className="bg-[#3399FF] p-2 rounded-full self-end">
                   <BiBook className="w-6 h-6 text-white" />
                 </div>
-                <p className="text-2xl text-[#5F6368] fond-medium mt-2">
-                  Physics
+                <p className="text-2xl text-[#5F6368] font-medium mt-2">
+                  {subject}
                 </p>
-                <p className="text-lg text-[#5F6368] flex flex-row items-center">
-                  View Subjets <MdNavigateNext />
-                </p>
+                <Link to="/student/subject" className="text-lg text-[#5F6368] flex flex-row items-center">
+                  View Subjects <MdNavigateNext />
+                </Link>
               </div>
-              <div className="hidden min-[600px]:flex flex-col p-4 bg-white rounded-xl border-[1px] border-[#D9D9D9] w-56 min-[1200px]:w-40 xl:w-56 min-[1700px]:w-64 mr-4">
-                <div className="bg-[#3399FF] p-2 rounded-full self-end">
-                  <BiBook className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-2xl text-[#5F6368] fond-medium mt-2">
-                  Chemistery
-                </p>
-                <p className="text-lg text-[#5F6368] flex flex-row items-center">
-                  View Subjets <MdNavigateNext />
-                </p>
-              </div>
-              <div className="hidden min-[400px]:flex flex-col p-4 bg-white rounded-xl border-[1px] border-[#D9D9D9] w-56 min-[1200px]:w-40 xl:w-56 min-[1700px]:w-64 ">
-                <div className="bg-[#3399FF] p-2 rounded-full self-end">
-                  <BiBook className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-2xl text-[#5F6368] fond-medium mt-2">
-                  Maths
-                </p>
-                <p className="text-lg text-[#5F6368] flex flex-row items-center">
-                  View Subjets <MdNavigateNext className="text-[#5F6368]" />{" "}
-                </p>
-              </div>
+              })}
             </div>
           </div>
           {/* shop and roadmaps */}

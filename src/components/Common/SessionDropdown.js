@@ -3,20 +3,18 @@ import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { useNavigate } from 'react-router-dom'
 import { getAllSchoolData } from '../School/helpers/dataFetcher'
-import { useSelector } from 'react-redux'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function SessionDoropDown({inputList, selected, setSelected, dispatch, setLoading}) {
+export default function SessionDropDown({inputList, selected, setSelected, dispatch, setLoading}) {
   const navigate = useNavigate();
   
   function fetchNewSession(value){
-    console.log("changed")
     dispatch(setSelected(value));
     localStorage.setItem("session", value.id);
-    getAllSchoolData(dispatch, navigate, setLoading, selected);
+    getAllSchoolData(dispatch, navigate, setLoading, value);
   }
   return (
     <Listbox value={selected} onChange={value=>fetchNewSession(value)}>
@@ -26,7 +24,7 @@ export default function SessionDoropDown({inputList, selected, setSelected, disp
             <Listbox.Button className={`relative w-[16rem] py-3 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm`}>
               <span className="flex items-center">
                 <span className="block ml-3 truncate">
-                  {selected.start_date ? selected.start_date.substring(0,4) : "2023"}
+                  {selected?.start_date ? selected.start_date.substring(0,4) : "Session"}
                   </span>
               </span>
               <span className="absolute inset-y-0 right-0 flex items-center pr-2 ml-3 pointer-events-none">

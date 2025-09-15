@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { GrNext } from "react-icons/gr";
 import { CgAdd } from "react-icons/cg";
-import { setWarningToast } from "../../../store/genralUser";
+import { setWarningToast } from "../../../store/generalUser";
 import { useDispatch } from "react-redux";
 import {AiFillFileExcel } from "react-icons/ai";
 import { Link } from "react-router-dom";

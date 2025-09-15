@@ -1,39 +1,41 @@
 import React from "react";
-import {setWarningToast} from "../../store/genralUser";
+import {setWarningToast} from "../../store/generalUser";
 import { useDispatch } from "react-redux";
+
+const isValidWebsite = (website) => {
+  if (!website) {
+    return true;
+  }
+
+  try {
+    const url = new URL(website);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export default function OtherDetailTab({
   schoolLogo,
   setSchoolLogo,
   schoolWebsite,
   setSchoolWebsite,
-  dateOfStablishment,
-  setDateOfStablishment,
   schoolPhoneNo,
   setSchoolPhoneNo,
-  affilationNo,
-  affilationBoard,
-  setAffilationBoard,
-  setAffilationNo,
+  dateOfEstablishment,
+  setDateOfEstablishment,
   register,
 }) {
   const dispatch = useDispatch();
   function onRegister(){
-    const re = new RegExp('/', 'g');
-    const re2 = new RegExp('-','g');
     const Phoneno = schoolPhoneNo.toString(10);
-    console.log("website ", schoolWebsite.substring(0,12));
-    // matching the pattern
-    if(dateOfStablishment.length===0
+    if(dateOfEstablishment.length===0
       // || schoolLogo===null || schoolWebsite.length===0 
       ){
       dispatch(setWarningToast("Fill Details completely !"));
     }
-    else if(Phoneno.length < 10 ) dispatch(setWarningToast("Enter complete phone number"));
-    else if(schoolWebsite && schoolWebsite.substring(0,12) !== "https://www."){
-dispatch(setWarningToast("Website not in proper format"))
-console.log("the web", schoolWebsite.substring(0,12))
-    }
-    else if((dateOfStablishment.match(re) && dateOfStablishment.match(re).length <2) || (dateOfStablishment.match(re2) && dateOfStablishment.match(re2).length < 2)) dispatch(setWarningToast('Please fill date properly'))
+    else if(!/^[0-9]{10,13}$/.test(Phoneno)) dispatch(setWarningToast("Enter a valid 10 to 13 digit phone number"));
+    else if(!isValidWebsite(schoolWebsite)) dispatch(setWarningToast("Enter a valid website URL"));
     else {
       register();
     }
@@ -50,10 +52,10 @@ console.log("the web", schoolWebsite.substring(0,12))
       <div className="flex flex-col max-w-2xl mt-4">
           <label className="font-semibold mt-2">School Phone Number*</label>
         <input
-          type="number"
+          type="tel"
           value={schoolPhoneNo}
     onChange={(e)=>setSchoolPhoneNo(e.target.value)}
-          maxLength={10}
+          maxLength={13}
           placeholder="School Phone No."
           className="flex px-3 py-2 font-medium border-2 border-slate-200 rounded-lg md:px-4 md:py-3 placeholder:font-normal"
         />
@@ -69,12 +71,12 @@ console.log("the web", schoolWebsite.substring(0,12))
         />
         </div>
         <div className="flex flex-col max-w-2xl mt-4">
-          <label className="font-semibold mt-2">Date of Stablishment*</label>
+          <label className="font-semibold mt-2">Date of Establishment*</label>
        
         <input
           type="date"
-          value={dateOfStablishment}
-    onChange={(e)=>setDateOfStablishment(e.target.value)}
+          value={dateOfEstablishment}
+    onChange={(e)=>setDateOfEstablishment(e.target.value)}
           placeholder="Date of Establishment"
           className="flex px-3 py-2 font-medium border-2 border-slate-200 rounded-lg md:px-4 md:py-3 placeholder:font-normal"
         />
@@ -115,8 +117,12 @@ console.log("the web", schoolWebsite.substring(0,12))
             </div>
             <input id="dropzone-file" type="file" className="hidden" 
             onChange={(e)=> {
-              if(e.target.files[0].type.substring(0,5)==="image")  {
-                if(e.target.files[0].size < 1000000) setSchoolLogo(e.target.files[0]);
+              const selectedFile = e.target.files?.[0];
+              if (!selectedFile) {
+                return;
+              }
+              if(selectedFile.type.substring(0,5)==="image")  {
+                if(selectedFile.size < 1000000) setSchoolLogo(selectedFile);
                 else dispatch(setWarningToast("Please select an image smaller than 1MB"))
                 }
               else dispatch(setWarningToast("Please select an Image"))

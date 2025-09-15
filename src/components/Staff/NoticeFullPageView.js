@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import Layout from "./Layout";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { API_URL } from "../../helpers/URL";
-import { setNotice } from "../../store/genralUser";
+import { API_URL, buildMediaUrl } from "../../helpers/URL";
+import { setNotice } from "../../store/generalUser";
 import { useSelector, useDispatch } from "react-redux";
 import { saveAs } from "file-saver";
 import { AiFillFileExcel } from "react-icons/ai";
@@ -39,7 +39,7 @@ export default function NoticeFullPageView() {
 
   const downloadFile = (index) => {
     const element =
-      API_URL.substring(0, API_URL.length - 5) + Notice.attachments[index];
+      buildMediaUrl(Notice.attachments[index]);
     saveAs(element, Notice.title + index + ".pdf");
   };
   console.log(Notice);

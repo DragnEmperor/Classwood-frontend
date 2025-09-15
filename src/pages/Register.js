@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import { loginUser, setWarningToast, setSuccessToast } from "../store/genralUser";
+import { loginUser, setWarningToast } from "../store/generalUser";
 import { Rings } from "react-loader-spinner";
 import { API_URL } from "../helpers/URL";
 import EmailTab from "../components/Register/EmailTab";
@@ -12,8 +11,49 @@ import OtherDetailTab from "../components/Register/OtherDetailTab";
 import loginBg from "../assets/CLASSWOOD Login Cover.png";
 import { boardList, stateList } from "../helpers/inputLists";
 
+const getApiErrorMessage = (error) => {
+  const data = error.response?.data;
+
+  if (!data) {
+    return "Registration failed. Please try again.";
+  }
+
+  if (typeof data === "string") {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data[0] || "Registration failed. Please try again.";
+  }
+
+  if (data.message) {
+    return data.message;
+  }
+
+  const firstValue = Object.values(data).find(Boolean);
+  if (Array.isArray(firstValue)) {
+    return firstValue[0] || "Registration failed. Please try again.";
+  }
+
+  if (firstValue && typeof firstValue === "object") {
+    const nestedValue = Object.values(firstValue).find(Boolean);
+    if (Array.isArray(nestedValue)) {
+      return nestedValue[0] || "Registration failed. Please try again.";
+    }
+    if (typeof nestedValue === "string") {
+      return nestedValue;
+    }
+  }
+
+  if (typeof firstValue === "string") {
+    return firstValue;
+  }
+
+  return "Registration failed. Please try again.";
+};
+
 export default function Register() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -27,13 +67,11 @@ export default function Register() {
   const [schoolLogo, setSchoolLogo] = useState(null);
   const [schoolWebsite, setSchoolWebsite] = useState("");
   const [schoolPhoneNo, setSchoolPhoneNo] = useState("");
-  const [dateOfStablishment, setDateOfStablishment] = useState("");
+  const [dateOfEstablishment, setDateOfEstablishment] = useState("");
   const [pageState, setPageState] = useState(0);
   const [affilationNo, setAffilationNo] = useState("");
   const [affilationBoard, setAffilationBoard] = useState(boardList[0]);
   const register = async () => {
-    localStorage.setItem("UserType", "School");
-
     try {
       
       setLoading(true);
@@ -47,49 +85,44 @@ export default function Register() {
       formData.append("school_city", schoolCity);
       formData.append("school_state", schoolState.name);
       formData.append("school_zipcode", schoolZipcode.toString());
-      formData.append("school_logo", schoolLogo);
+      if (schoolLogo){
+        formData.append("school_logo", schoolLogo);
+      }
       formData.append("school_website", schoolWebsite);
-      formData.append("date_of_establishment", dateOfStablishment);
+      formData.append("date_of_establishment", dateOfEstablishment);
       formData.append("school_affNo", affilationNo);
       formData.append("school_board", affilationBoard.name);
       const res = await axios.post(API_URL + "signup/", 
           formData
           );
-          console.log(res);
-          if(res.status===200){
-            if(res.data.user && res.data.user.email){
-              dispatch(setWarningToast("Account with this email already exists."))
-            }
-          }
           if (res.status === 201) {
          
             const LoginRes = await axios.post(API_URL + "login/", {
               email: email,
               password: password,
             });
-            console.log("Res : ",LoginRes)
             if (LoginRes.status === 200) {
+              const token = LoginRes.data.tokens.access;
               localStorage.setItem("UserType", LoginRes.data.user_type);
-              const sessionRes = await axios.post(API_URL + "list/session/",{
-              is_active : true
-              },{
+              localStorage.setItem("token", token);
+              localStorage.setItem("Payed", "true");
+              dispatch(loginUser(LoginRes.data.user_type))
+              const sessionRes = await axios.get(API_URL + "list/session/", {
                 headers: {
-                  Authorization: `Bearer ${LoginRes.data.tokens.access}`,
+                  Authorization: `Bearer ${token}`,
                 },
               });
-              console.log(sessionRes)
-              localStorage.setItem("token", LoginRes.data.tokens.access);
-              localStorage.setItem("Payed", true);
-              dispatch(loginUser(res.data.user_type))
+              if (sessionRes.data.length) {
+                localStorage.setItem("session", sessionRes.data[0].id);
+              }
               
               navigate(`/${LoginRes.data.user_type.toLowerCase()}/dashboard`);
             }
-            console.log("response returned", LoginRes);
             setPageState(0);
         }
       
     } catch (e) {
-      console.warn("Error :::::::", e);
+      dispatch(setWarningToast(getApiErrorMessage(e)));
     }
     finally {
       setLoading(false);
@@ -123,14 +156,10 @@ export default function Register() {
                 setSchoolLogo={setSchoolLogo}
                 schoolWebsite={schoolWebsite}
                 setSchoolWebsite={setSchoolWebsite}
-                dateOfStablishment={dateOfStablishment}
-                setDateOfStablishment={setDateOfStablishment}
+                dateOfEstablishment={dateOfEstablishment}
+                setDateOfEstablishment={setDateOfEstablishment}
                 schoolPhoneNo={schoolPhoneNo}
                 setSchoolPhoneNo={setSchoolPhoneNo}
-                affilationNo={affilationNo} 
-                affilationBoard={affilationBoard}
-                setAffilationBoard={setAffilationBoard}
-                setAffilationNo={setAffilationNo}
                 register={register}
               />
             ) : pageState === 1 ? (
@@ -166,7 +195,7 @@ export default function Register() {
           </div>
           <div className="hidden lg:flex flex-col justify-between bg-slate-200 lg:max-w-sm xl:max-w-lg">
               
-              <img src={loginBg} className="object-cover h-full w-full opacity-80" alt="Login image" />
+              <img src={loginBg} className="object-cover h-full w-full opacity-80" alt="Classwood login cover" />
 </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GoPrimitiveDot, GoLocation } from "react-icons/go";
+import { GoDotFill, GoLocation } from "react-icons/go";
 import { RxCross1 } from "react-icons/rx";
 import { BsBriefcase } from "react-icons/bs";
 import { MdOutlineSchool } from "react-icons/md";
@@ -46,7 +46,7 @@ export default function ClassroomSideBar({
   async function getClassTeacher() {
     setLoading(true);
     const token = localStorage.getItem("token");
-    const Teachers = await axios.get(API_URL + "list/staff", {
+    const Teachers = await axios.get(API_URL + "list/staff/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -90,7 +90,7 @@ export default function ClassroomSideBar({
       let presents = 0;
       let absents = 0;
       for(let i in res.data){
-        let val = JSON.parse(res.data[i].month_attendance)[today-1];
+        let val = res.data[i].month_attendance[today-1];
         console.log(val)
         if(val===2) presents++;
         if(val===1) absents++;

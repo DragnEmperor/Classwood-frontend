@@ -4,7 +4,7 @@ import { Rings } from "react-loader-spinner";
 import Layout from "./Layout";
 import { useDispatch } from "react-redux";
 import { API_URL } from "../../helpers/URL";
-import { setWarningToast, setSuccessToast } from "../../store/genralUser";
+import { setWarningToast, setSuccessToast } from "../../store/generalUser";
 import { RxCross1 } from "react-icons/rx";
 import Calendar from "../Common/Calander";
 
