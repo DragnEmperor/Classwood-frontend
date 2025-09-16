@@ -1,70 +1,59 @@
-# Getting Started with Create React App
+# Classwood Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Next.js 15 (App Router) + TypeScript + Tailwind CSS frontend for Classwood.
 
-## Available Scripts
+Auth uses httpOnly cookies set by Next.js API routes that proxy to the Django REST backend. Tokens never reach the browser. Server components fetch data directly from DRF on each request; React Query handles client-side mutations.
 
-In the project directory, you can run:
+## Prerequisites
 
-### `npm start`
+- Node 20+
+- Django backend running (see `../Classwood-DRF`) — default expected at `http://127.0.0.1:8000/api/`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Setup
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```sh
+cp .env.example .env.local
+# edit .env.local if your DRF runs somewhere else
+npm install
+npm run dev
+```
 
-### `npm test`
+App boots at http://localhost:3000.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Scripts
 
-### `npm run build`
+| Script | Purpose |
+|---|---|
+| `npm run dev` | Dev server with hot reload |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Project layout
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+app/                  # Next.js App Router routes
+  api/auth/           # Login/logout proxy routes (set/clear cookies)
+  login/              # Public login page + client form
+  school/             # School role section (gated by middleware)
+    dashboard/        # Server-rendered dashboard
+    _components/      # Role-scoped client components (sidebar)
+lib/                  # Server-only helpers (auth, fetch wrapper, react-query)
+types/                # Shared API response types
+middleware.ts         # Role gating: /school|/staff|/student → cookie check
+public/               # Static assets (images, manifest, favicon)
+_legacy_src/          # OLD Create-React-App codebase — kept for reference
+                      #   during Phase 3 migration. Will be removed when all
+                      #   routes are ported.
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Migration status (Phase 3)
 
-### `npm run eject`
+| Phase | Status |
+|---|---|
+| 3.1 — Foundation + Login + School Dashboard | ✅ Done |
+| 3.2 — Remaining School routes, Student/Staff dashboards, public pages | ⏳ Pending |
+| 3.3 — Cleanup: delete `_legacy_src/` | ⏳ Pending |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+See `_legacy_src/` for the unmigrated routes (Register, ForgotPassword, all CRUD pages, Student/Staff dashboards, notices/events). These are no longer served — they exist only as reference during incremental migration.
