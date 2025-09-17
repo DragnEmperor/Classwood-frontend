@@ -4,6 +4,8 @@ import { AiOutlineBarChart } from "react-icons/ai";
 import { apiFetch, ApiError } from "@/lib/api";
 import { FeesPieChart } from "./fees-pie-chart";
 import { ThoughtOfTheDay } from "./thought-of-the-day";
+import { NoticesPanel } from "./_components/notices-panel";
+import { EventsPanel } from "./_components/events-panel";
 import type {
   StudentSummary,
   StaffSummary,
@@ -11,6 +13,8 @@ import type {
   FeeSummary,
   PaymentsResponse,
   ThoughtOfTheDay as ThoughtOfTheDayType,
+  Notice,
+  SchoolEvent,
 } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +68,7 @@ function aggregatePresence(
 export default async function SchoolDashboardPage() {
   const todayIndex = new Date().getDate() - 1;
 
-  const [students, staff, classrooms, feeSummary, paymentsData, thoughts] =
+  const [students, staff, classrooms, feeSummary, paymentsData, thoughts, notices, events] =
     await Promise.all([
       safeFetch<StudentSummary[]>("list/students/", []),
       safeFetch<StaffSummary[]>("list/staff/", []),
@@ -72,6 +76,8 @@ export default async function SchoolDashboardPage() {
       safeFetch<FeeSummary | null>("list/fees/?summary=true", null),
       safeFetch<PaymentsResponse>("list/payments/?limit=10", { payments: [] }),
       safeFetch<ThoughtOfTheDayType[]>("list/thoughtDay/", []),
+      safeFetch<Notice[]>("list/notice/", []),
+      safeFetch<SchoolEvent[]>("list/event/", []),
     ]);
 
   const totals: CountTotals = {
@@ -179,8 +185,8 @@ export default async function SchoolDashboardPage() {
       </div>
 
       <div className="my-10 w-full px-10 xl:w-2/5 2xl:w-1/3 min-[1200px]:my-0 min-[1200px]:mx-10 min-[1200px]:px-0">
-        <PlaceholderPanel title="Notices" />
-        <PlaceholderPanel title="Events" />
+        <NoticesPanel notices={notices} canAdd />
+        <EventsPanel events={events} canAdd />
       </div>
     </div>
   );
@@ -259,16 +265,5 @@ function PaymentRow({
         {new Date(payment.payment_date).toLocaleDateString()}
       </div>
     </>
-  );
-}
-
-function PlaceholderPanel({ title }: { title: string }) {
-  return (
-    <div className="mb-6 rounded-xl bg-white p-6 shadow-md">
-      <h3 className="border-b pb-2 text-lg font-semibold">{title}</h3>
-      <p className="mt-4 text-sm text-gray-500">
-        {title} panel rebuild scheduled for Phase 3.2.
-      </p>
-    </div>
   );
 }

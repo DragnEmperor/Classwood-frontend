@@ -72,3 +72,22 @@ export interface ThoughtOfTheDay {
   content: string;
   date: string;
 }
+
+export interface Notice {
+  id: number;
+  title: string;
+  description: string;
+  date_posted: string;
+  posted_by?: string;
+}
+
+export interface SchoolEvent {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+}
+
+export interface AccountProfile extends Account {
+  school_logo_url?: string;
+}
