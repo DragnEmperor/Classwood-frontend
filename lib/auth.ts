@@ -33,7 +33,7 @@ export async function setSession(session: Session): Promise<void> {
     path: "/",
     secure,
     sameSite: "lax" as const,
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24,
   };
 
   store.set(TOKEN_COOKIE, session.token, { ...common, httpOnly: true });

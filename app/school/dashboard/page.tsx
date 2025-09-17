@@ -15,6 +15,7 @@ import type {
   ThoughtOfTheDay as ThoughtOfTheDayType,
   Notice,
   SchoolEvent,
+  PaginatedResponse,
 } from "@/types/api";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,23 @@ interface PresentTotals {
   students: number;
   teachingStaff: number;
   nonTeachingStaff: number;
+}
+
+async function safeFetchPaginated<T>(path: string, fallback: T[] = []): Promise<T[]> {
+  try{
+      const allResults: T[] = [];
+      let nextUrl: string | null = path;
+      while (nextUrl) {
+        const response : PaginatedResponse<T> = await apiFetch<PaginatedResponse<T>>(nextUrl);
+        allResults.push(...response.results);
+        nextUrl = response.next;
+      }
+      return allResults;
+  } catch(err) {
+    if (err instanceof ApiError) console.warn(`[dashboard] ${path} -> ${err.status}`);
+    else console.warn(`[dashboard] ${path} failed`, err);
+    return fallback;
+  }
 }
 
 function safeFetch<T>(path: string, fallback: T): Promise<T> {
@@ -70,14 +88,14 @@ export default async function SchoolDashboardPage() {
 
   const [students, staff, classrooms, feeSummary, paymentsData, thoughts, notices, events] =
     await Promise.all([
-      safeFetch<StudentSummary[]>("list/students/", []),
-      safeFetch<StaffSummary[]>("list/staff/", []),
-      safeFetch<Classroom[]>("list/classroom/", []),
-      safeFetch<FeeSummary | null>("list/fees/?summary=true", null),
+      safeFetchPaginated<StudentSummary>("list/student/", []),
+      safeFetchPaginated<StaffSummary>("list/staff/", []),
+      safeFetchPaginated<Classroom>("list/classroom/", []),
+      safeFetch<FeeSummary>("list/fees/?summary=true", {total_fees: 0, total_paid: 0, pending: 0}),
       safeFetch<PaymentsResponse>("list/payments/?limit=10", { payments: [] }),
-      safeFetch<ThoughtOfTheDayType[]>("list/thoughtDay/", []),
-      safeFetch<Notice[]>("list/notice/", []),
-      safeFetch<SchoolEvent[]>("list/event/", []),
+      safeFetchPaginated<ThoughtOfTheDayType>("list/thoughtDay/", []),
+      safeFetchPaginated<Notice>("list/notice/", []),
+      safeFetchPaginated<SchoolEvent>("list/event/", []),
     ]);
 
   const totals: CountTotals = {
@@ -85,6 +103,7 @@ export default async function SchoolDashboardPage() {
     staff: staff.length,
     classes: classrooms.length,
   };
+
   const presence = aggregatePresence(students, staff, todayIndex);
   const recentPayments = paymentsData.payments ?? [];
   const latestThought = thoughts.length ? thoughts[thoughts.length - 1].content : "";
@@ -119,9 +138,9 @@ export default async function SchoolDashboardPage() {
             />
             <StatCard
               bg="bg-[#F0FDF0]"
-              img="/assets/schoolAchivement.png"
+              img="/assets/schoolAchievement.png"
               count={0}
-              label="Total Achivements"
+              label="Total Achievements"
             />
           </div>
 
@@ -141,16 +160,16 @@ export default async function SchoolDashboardPage() {
                 </div>
               </div>
               <div className="flex w-2/5 flex-col items-start justify-center">
-                <FeeStat label="Total Fees" dot="#818CF8" value={feeSummary?.total_fees} />
-                <FeeStat label="Fee Submitted" dot="#2DD4BF" value={feeSummary?.total_paid} />
-                <FeeStat label="Fee Pending" dot="#F59E0B" value={feeSummary?.pending} />
+                <FeeStat label="Total Fees" dot="#818CF8" value={`${feeSummary.total_fees}`} />
+                <FeeStat label="Fee Submitted" dot="#2DD4BF" value={`${feeSummary.total_paid}`} />
+                <FeeStat label="Fee Pending" dot="#F59E0B" value={`${feeSummary.pending}`} />
               </div>
             </div>
           </Link>
 
           <div className="mx-4 h-fit w-2/5 rounded-xl p-4 shadow-md">
             <span className="flex border-b pb-2 text-xl font-semibold">
-              Attendence Management
+              Attendance Management
             </span>
             <div className="flex flex-col pt-4">
               <PresentRow label="Present Student" value={presence.students} />
