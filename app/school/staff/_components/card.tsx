@@ -5,6 +5,8 @@ import {clientFetch} from "@/lib/client-api";
 import {useToast} from "@/app/_components/toast-provider";
 import AttendanceBadge from "./badge";
 
+const PROFILE_PLACEHOLDER = "/assets/profile.png";
+
 export function attendanceState(staff: Staff) {
   const todayIndex = new Date().getDate() - 1;
   return staff.month_attendance?.[todayIndex] ?? 0;
@@ -60,9 +62,8 @@ export function StaffCard({
           <img
             className="mb-2 h-10 w-10 rounded-md object-cover"
             src={
-              staff.profile_pic_url ||
               staff.profile_pic ||
-              "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?auto=format&fit=crop&w=200&q=80"
+              PROFILE_PLACEHOLDER
             }
             alt=""
           />

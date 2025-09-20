@@ -13,7 +13,7 @@ async function safeAccount(): Promise<AccountProfile | null> {
 }
 
 function resolveLogoUrl(account: AccountProfile | null): string {
-  const raw = account?.school_logo_url;
+  const raw = account?.school_logo;
   if (!raw) return "/assets/profile.png";
   if (raw.startsWith("http")) return raw;
   const base = (process.env.API_URL ?? "").replace(/\/api\/?$/, "/");

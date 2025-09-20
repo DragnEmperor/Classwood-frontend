@@ -14,6 +14,8 @@ import {
 } from "react-icons/ai";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import ModalActions from "./modal-actions";
+import CsvErrorModal from "@/app/_components/csv-error-modal";
+import { parseCsvImportError, type ParsedCsvError } from "@/lib/csv-errors";
 
 const CLASS_OPTIONS = [
   "1",
@@ -46,6 +48,12 @@ interface ClassroomCreateResponse {
   data: Classroom;
 }
 
+interface CsvImportResponse {
+  message: string;
+  created?: number;
+  errors?: unknown[];
+}
+
 interface SubjectDraft {
   id: string;
   name: string;
@@ -63,6 +71,16 @@ function newSubjectDraft(staff: Staff[]): SubjectDraft {
     name: "",
     teacherId: String(staff[0]?.user.id ?? ""),
   };
+}
+
+function hasCsvErrors(value: unknown): value is { csvResponse: CsvImportResponse } {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "csvResponse" in value &&
+    Array.isArray((value as { csvResponse?: CsvImportResponse }).csvResponse?.errors) &&
+    Boolean((value as { csvResponse: CsvImportResponse }).csvResponse.errors?.length)
+  );
 }
 
 export default function ClassroomFormModal({
@@ -88,6 +106,7 @@ export default function ClassroomFormModal({
   });
   const [subjectDrafts, setSubjectDrafts] = useState<SubjectDraft[]>([]);
   const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvError, setCsvError] = useState<ParsedCsvError | null>(null);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -109,7 +128,9 @@ export default function ClassroomFormModal({
       };
 
       if (mode === "edit" && classroom) {
-        return clientFetch(`list/classroom/${classroom.id}/`, { method: "PATCH", body });
+        const updated = clientFetch(`list/classroom/${classroom.id}/`, { method: "PATCH", body });
+        toast.success("Classroom updated");
+        return updated;
       }
 
       const created = await clientFetch<ClassroomCreateResponse>("list/classroom/", {
@@ -117,6 +138,8 @@ export default function ClassroomFormModal({
         body,
       });
       const classroomId = created.data.id;
+      toast.success("Classroom created");
+      await queryClient.invalidateQueries({ queryKey: ["classrooms"] });
 
       for (const subject of subjectDrafts) {
         await clientFetch("staff/subject/", {
@@ -128,34 +151,46 @@ export default function ClassroomFormModal({
           },
         });
       }
-
+      if (subjectDrafts.length > 0){  
+        toast.success("Subjects created for classroom " + created.data.class_name);
+        await queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      }
       if (csvFile) {
         const formData = new FormData();
         formData.append("classroom", classroomId);
         formData.append("csv_file", csvFile);
-        await clientFetch("staff/student/", {
+        const csvResponse = await clientFetch<CsvImportResponse>("staff/student/", {
           method: "POST",
           body: formData,
         });
+        queryClient.invalidateQueries({ queryKey: ["students"] });
+        if (csvResponse.errors?.length) return { created, csvResponse };
+        toast.success(`Students imported for classroom ${created.data.class_name}`);
       }
 
       return created;
     },
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      if (hasCsvErrors(response)) {
+        setCsvError(parseCsvImportError(response.csvResponse, "Student CSV import failed"));
+        return;
+      }
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["classrooms"] }),
         queryClient.invalidateQueries({ queryKey: ["subjects"] }),
         queryClient.invalidateQueries({ queryKey: ["students"] }),
       ]);
-      toast.success(mode === "add" ? "Classroom created" : "Classroom updated");
       onClose();
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Unable to save classroom");
+      const parsed = parseCsvImportError(error, "Student CSV import failed");
+      if (parsed.errors.length) setCsvError(parsed);
+      else toast.error(parsed.message || "Unable to save classroom");
     },
   });
 
   return (
+    <>
     <Modal title={mode === "add" ? "Add Class" : "Edit Class"} onClose={onClose}>
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Class">
@@ -292,5 +327,7 @@ export default function ClassroomFormModal({
         onSubmit={() => mutation.mutate()}
       />
     </Modal>
+    {csvError ? <CsvErrorModal error={csvError} onClose={() => setCsvError(null)} /> : null}
+    </>
   );
 }

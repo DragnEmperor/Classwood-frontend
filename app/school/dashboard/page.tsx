@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AiOutlineBarChart } from "react-icons/ai";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, apiFetchPage, ApiError } from "@/lib/api";
 import { FeesPieChart } from "./fees-pie-chart";
 import { ThoughtOfTheDay } from "./thought-of-the-day";
 import { NoticesPanel } from "./_components/notices-panel";
@@ -11,6 +11,7 @@ import type {
   StaffSummary,
   Classroom,
   FeeSummary,
+  Payment,
   PaymentsResponse,
   ThoughtOfTheDay as ThoughtOfTheDayType,
   Notice,
@@ -32,16 +33,13 @@ interface PresentTotals {
   nonTeachingStaff: number;
 }
 
-async function safeFetchPaginated<T>(path: string, fallback: T[] = []): Promise<T[]> {
+async function safeFetchPage<T>(
+  path: string,
+  fallback: PaginatedResponse<T> = { count: 0, next: null, previous: null, results: [] },
+  pageSize = 10,
+): Promise<PaginatedResponse<T>> {
   try{
-      const allResults: T[] = [];
-      let nextUrl: string | null = path;
-      while (nextUrl) {
-        const response : PaginatedResponse<T> = await apiFetch<PaginatedResponse<T>>(nextUrl);
-        allResults.push(...response.results);
-        nextUrl = response.next;
-      }
-      return allResults;
+      return await apiFetchPage<T>(path, { pageSize });
   } catch(err) {
     if (err instanceof ApiError) console.warn(`[dashboard] ${path} -> ${err.status}`);
     else console.warn(`[dashboard] ${path} failed`, err);
@@ -86,27 +84,29 @@ function aggregatePresence(
 export default async function SchoolDashboardPage() {
   const todayIndex = new Date().getDate() - 1;
 
-  const [students, staff, classrooms, feeSummary, paymentsData, thoughts, notices, events] =
+  const [studentsPage, staffPage, classroomsPage, feeSummary, paymentsData, thoughtsPage, noticesPage, eventsPage] =
     await Promise.all([
-      safeFetchPaginated<StudentSummary>("list/student/", []),
-      safeFetchPaginated<StaffSummary>("list/staff/", []),
-      safeFetchPaginated<Classroom>("list/classroom/", []),
+      safeFetchPage<StudentSummary>("list/student/", undefined, 20),
+      safeFetchPage<StaffSummary>("list/staff/", undefined, 20),
+      safeFetchPage<Classroom>("list/classroom/", undefined, 1),
       safeFetch<FeeSummary>("list/fees/?summary=true", {total_fees: 0, total_paid: 0, pending: 0}),
       safeFetch<PaymentsResponse>("list/payments/?limit=10", { payments: [] }),
-      safeFetchPaginated<ThoughtOfTheDayType>("list/thoughtDay/", []),
-      safeFetchPaginated<Notice>("list/notice/", []),
-      safeFetchPaginated<SchoolEvent>("list/event/", []),
+      safeFetchPage<ThoughtOfTheDayType>("list/thoughtDay/", undefined, 1),
+      safeFetchPage<Notice>("list/notice/", undefined, 5),
+      safeFetchPage<SchoolEvent>("list/event/", undefined, 5),
     ]);
 
   const totals: CountTotals = {
-    students: students.length,
-    staff: staff.length,
-    classes: classrooms.length,
+    students: studentsPage.count,
+    staff: staffPage.count,
+    classes: classroomsPage.count,
   };
 
-  const presence = aggregatePresence(students, staff, todayIndex);
+  const presence = aggregatePresence(studentsPage.results, staffPage.results, todayIndex);
   const recentPayments = paymentsData.payments ?? [];
-  const latestThought = thoughts.length ? thoughts[thoughts.length - 1].content : "";
+  const latestThought = thoughtsPage.results[0]?.content ?? "";
+  const notices = noticesPage.results;
+  const events = eventsPage.results;
 
   return (
     <div className="my-10 flex flex-col md:px-10 min-[1200px]:flex-row min-[1200px]:px-0">
@@ -172,9 +172,9 @@ export default async function SchoolDashboardPage() {
               Attendance Management
             </span>
             <div className="flex flex-col pt-4">
-              <PresentRow label="Present Student" value={presence.students} />
-              <PresentRow label="Present Teaching Staff" value={presence.teachingStaff} />
-              <PresentRow label="Present Non Teaching Staff" value={presence.nonTeachingStaff} />
+              <PresentRow label="Present Student Snapshot" value={presence.students} />
+              <PresentRow label="Present Teaching Staff Snapshot" value={presence.teachingStaff} />
+              <PresentRow label="Present Non Teaching Staff Snapshot" value={presence.nonTeachingStaff} />
             </div>
           </div>
         </div>
@@ -273,7 +273,7 @@ function PaymentRow({
   payment,
 }: {
   index: number;
-  payment: { id: number; student_name: string; amount_paid: string; payment_date: string };
+  payment: Payment;
 }) {
   return (
     <>

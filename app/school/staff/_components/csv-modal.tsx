@@ -1,35 +1,54 @@
 "use client";
+
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientFetch } from "@/lib/client-api";
 import { useToast } from "@/app/_components/toast-provider";
 import Modal from "@/app/_components/modal";
 import { AiFillFileExcel } from "react-icons/ai";
+import CsvErrorModal from "@/app/_components/csv-error-modal";
+import { parseCsvImportError, type ParsedCsvError } from "@/lib/csv-errors";
+
+interface CsvImportResponse {
+  message: string;
+  created?: number;
+  errors?: unknown[];
+}
 
 export default function StaffCsvModal({ onClose }: { onClose: () => void }) {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvError, setCsvError] = useState<ParsedCsvError | null>(null);
 
   const mutation = useMutation({
     mutationFn: () => {
       if (!csvFile) throw new Error("Select a staff CSV file");
       const formData = new FormData();
       formData.append("csv_file", csvFile);
-      return clientFetch("list/staff/", {
+      return clientFetch<CsvImportResponse>("list/staff/", {
         method: "POST",
         body: formData,
       });
     },
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      if (response.errors?.length) {
+        setCsvError(parseCsvImportError(response, "Staff CSV import failed"));
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: ["staff"] });
       toast.success("Staff uploaded successfully");
       onClose();
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Unable to upload staff"),
+    onError: (error) => {
+      const parsed = parseCsvImportError(error, "Staff CSV import failed");
+      if (parsed.errors.length) setCsvError(parsed);
+      else toast.error(parsed.message);
+    },
   });
 
   return (
+    <>
     <Modal title="Upload Staff CSV" onClose={onClose}>
       <a
         href="/Test-Staff.csv"
@@ -66,5 +85,7 @@ export default function StaffCsvModal({ onClose }: { onClose: () => void }) {
         </button>
       </div>
     </Modal>
+    {csvError ? <CsvErrorModal error={csvError} onClose={() => setCsvError(null)} /> : null}
+    </>
   );
 }

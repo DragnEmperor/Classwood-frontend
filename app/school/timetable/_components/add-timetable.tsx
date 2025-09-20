@@ -4,12 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FiTrash2, FiX } from "react-icons/fi";
 import { IoMdAddCircleOutline } from "react-icons/io";
-import { clientFetch } from "@/lib/client-api";
+import { clientFetch, clientFetchPage } from "@/lib/client-api";
 import { useToast } from "@/app/_components/toast-provider";
-import type { Classroom, PaginatedResponse, Subject } from "@/types/api";
-import {normalizeList} from "@/lib/utils";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+import type { Classroom, Subject } from "@/types/api";
+import {classLabel} from "@/lib/utils";
+import {DAYS} from "@/lib/constants";
 
 interface PeriodDraft {
   id: string;
@@ -23,11 +22,6 @@ interface CommonDraft {
   subject: string;
   start: string;
   end: string;
-}
-
-function classLabel(classroom: Classroom | null) {
-  if (!classroom) return "";
-  return `${classroom.class_name} ${classroom.section_name ?? classroom.section ?? ""}`.trim();
 }
 
 function newPeriod(): PeriodDraft {
@@ -132,10 +126,10 @@ export function TimetableEditor({
 
   const classroomsQuery = useQuery({
     queryKey: ["classrooms"],
-    queryFn: () => clientFetch<Classroom[] | PaginatedResponse<Classroom>>("list/classroom/"),
+    queryFn: () => clientFetchPage<Classroom>("list/classroom/", { pageSize: 100 }),
   });
 
-  const classrooms = useMemo(() => normalizeList(classroomsQuery.data), [classroomsQuery.data]);
+  const classrooms = useMemo(() => classroomsQuery.data?.results ?? [], [classroomsQuery.data]);
   const selectedClass = classrooms.find((item) => item.id === selectedClassId) ?? classrooms[0] ?? null;
 
   useEffect(() => {
@@ -145,13 +139,11 @@ export function TimetableEditor({
   const subjectsQuery = useQuery({
     queryKey: ["subjects", selectedClass?.id],
     queryFn: () =>
-      clientFetch<Subject[] | PaginatedResponse<Subject>>(
-        `staff/subject/?classroom=${selectedClass?.id}`,
-      ),
+      clientFetchPage<Subject>(`staff/subject/?classroom=${selectedClass?.id}`, { pageSize: 100 }),
     enabled: Boolean(selectedClass?.id),
   });
 
-  const subjects = useMemo(() => normalizeList(subjectsQuery.data), [subjectsQuery.data]);
+  const subjects = useMemo(() => subjectsQuery.data?.results ?? [], [subjectsQuery.data]);
 
   const saveTimetable = useMutation({
     mutationFn: async () => {
@@ -253,7 +245,7 @@ export function TimetableEditor({
     );
   }
 
-  if (classroomsQuery.isLoading) {
+  if (classroomsQuery.isPending) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-14 w-14 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600" />
@@ -356,11 +348,11 @@ export function TimetableEditor({
                       <select
                         value={row.subjectId}
                         onChange={(event) => updatePeriod(row.id, "subjectId", event.target.value)}
-                        disabled={subjectsQuery.isLoading}
+                        disabled={subjectsQuery.isPending}
                         className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       >
                         <option value="">
-                          {subjectsQuery.isLoading ? "Loading subjects..." : "Select subject"}
+                          {subjectsQuery.isPending ? "Loading subjects..." : "Select subject"}
                         </option>
                         {subjects.map((subject) => (
                           <option key={subject.id} value={subject.id}>
@@ -434,7 +426,7 @@ export function TimetableEditor({
       ) : null}
 
       {commonPanelOpen ? (
-        <div className="fixed inset-0 z-40 bg-black/30">
+        <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setCommonPanelOpen(false)}>
           <div className="absolute right-0 top-0 flex h-full w-full max-w-3xl flex-col bg-white shadow-xl">
             <div className="flex items-center justify-between border-b px-6 py-5">
               <div>
