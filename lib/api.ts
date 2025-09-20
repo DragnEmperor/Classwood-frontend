@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import type { PaginatedResponse } from "@/types/api";
 
 const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000/api/";
 
@@ -17,6 +18,11 @@ interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   /** Skip attaching the Bearer token (e.g. for login). */
   noAuth?: boolean;
+}
+
+interface PageFetchOptions {
+  page?: number;
+  pageSize?: number;
 }
 
 export async function apiFetch<T = unknown>(
@@ -57,6 +63,24 @@ export async function apiFetch<T = unknown>(
 
   if (!res.ok) throw new ApiError(res.status, payload);
   return payload as T;
+}
+
+function withPageParams(path: string, { page, pageSize }: PageFetchOptions) {
+  const [base, search = ""] = path.split("?");
+  const params = new URLSearchParams(search);
+
+  if (page !== undefined) params.set("page", String(page));
+  if (pageSize !== undefined) params.set("page_size", String(pageSize));
+
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+export async function apiFetchPage<T>(
+  path: string,
+  options: PageFetchOptions = {},
+): Promise<PaginatedResponse<T>> {
+  return apiFetch<PaginatedResponse<T>>(withPageParams(path, options));
 }
 
 export const apiBaseUrl = API_URL;

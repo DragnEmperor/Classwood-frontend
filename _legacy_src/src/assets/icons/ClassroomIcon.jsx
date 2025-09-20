@@ -1,9 +1,0 @@
-export default function ClassroomIcon(){
-    return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M21.4697 19V5C21.4697 3 20.4697 2 18.4697 2H14.4697C12.4697 2 11.4697 3 11.4697 5V19C11.4697 21 12.4697 22 14.4697 22H18.4697C20.4697 22 21.4697 21 21.4697 19Z" stroke="#F8FAFC" strokeWidth="1.5" strokeLinecap="round"/>
-    <path opacity="0.4" d="M11.4697 6H16.4697M11.4697 18H15.4697M11.4697 13.95L16.4697 14M11.4697 10H14.4697" stroke="#F8FAFC" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M5.49027 2C3.86027 2 2.53027 3.33 2.53027 4.95V17.91C2.53027 18.36 2.72027 19.04 2.95027 19.43L3.77027 20.79C4.71027 22.36 6.26027 22.36 7.20027 20.79L8.02027 19.43C8.25027 19.04 8.44027 18.36 8.44027 17.91V4.95C8.44027 3.33 7.11027 2 5.49027 2Z" stroke="#F8FAFC" strokeWidth="1.5" strokeLinecap="round"/>
-    <path opacity="0.4" d="M8.44027 7H2.53027" stroke="#F8FAFC" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-    
-}

@@ -27,7 +27,7 @@ const NAV: NavItem[] = [
   { href: "/school/classroom", label: "Classroom", Icon: AiOutlineBank },
   { href: "/school/fees", label: "Fee Management", Icon: AiOutlineDollarCircle },
   { href: "/school/attendance", label: "Attendance", Icon: AiOutlineCalendar },
-  { href: "/school/subject", label: "Syllabus", Icon: AiOutlineBook },
+  { href: "/school/syllabus", label: "Syllabus", Icon: AiOutlineBook },
   { href: "/school/test", label: "Exam and Test", Icon: AiOutlineFileText },
   { href: "/school/staff", label: "Staff", Icon: AiOutlineTeam },
 ];

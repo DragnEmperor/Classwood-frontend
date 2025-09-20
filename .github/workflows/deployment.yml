@@ -1,0 +1,102 @@
+name: Vercel Deployment
+
+env:
+    NODE_VERSION: 24
+    GITHUB_REPO_ID: 1267083528
+
+on:
+    workflow_dispatch
+
+jobs:
+    check-and-build:
+        name: Check and Build Project
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: 'npm'
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: Run linter
+              run: npm run lint
+
+            - name: Build Project
+              run: npm run build
+    
+    deploy:
+        name: Deploy to Vercel
+        runs-on: ubuntu-latest
+        needs: check-and-build
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: 'npm'
+
+            - name: Trigger Vercel Deployment
+              env:
+                VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+              run: |
+                echo "Triggering Vercel deployment..."
+                RESPONSE=$(curl -X POST "https://api.vercel.com/v13/deployments" \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$(
+                  jq -n \
+                    --arg repoId "$GITHUB_REPO_ID" \
+                    '{
+                      name: "classwood-frontend-deployment",
+                      project: "classwood-frontend",
+                      gitSource: {type: "github", repoId: $repoId, ref: "master"},
+                      projectSettings: {framework: "nextjs"},
+                      target: "production"
+                    }'
+                )")
+
+                DEPLOYMENT_ID=$(printf '%s' "$RESPONSE" | jq -r '.id // empty')
+
+                if [ -z "$DEPLOYMENT_ID"]; then
+                    echo "Failed to trigger deployment. Response: $RESPONSE"
+                    exit 1    
+                fi
+
+                echo "Deployment triggered successfully. Deployment ID: $DEPLOYMENT_ID"
+
+                retry=1
+                while true; do
+                    DEPLOYMENT_DETAILS=$(curl -X GET "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" \
+                    -H "Authorization: Bearer $VERCEL_TOKEN" \
+                    -H "Content-Type: application/json")
+
+                    STATUS=$(printf '%s' "$DEPLOYMENT_DETAILS" | jq -r '.status')
+
+                    if [ $retry -eq 1 ]; then
+                        SLEEP_TIME=70
+                    else
+                        SLEEP_TIME=10
+                    fi
+
+                    if [ "$STATUS" = "READY" ]; then
+                        echo "Deployment completed successfully."
+                        break
+                    elif [[ "$STATUS" = "ERROR" || "$STATUS" = "CANCELED" ]]; then
+                        echo "Deployment failed."
+                        exit 1
+                    elif [ $retry -lt 10 ]; then
+                        echo "Deployment status: $STATUS. Waiting for $SLEEP_TIME seconds before retrying..."
+                        sleep $SLEEP_TIME
+                    else
+                        echo "Deployment did not complete within the expected time frame."
+                        exit 1
+                    fi
+                    ((retry++))
+                done

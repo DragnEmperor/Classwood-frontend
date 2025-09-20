@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   AiFillBank,
@@ -16,13 +16,13 @@ import { GoLocation } from "react-icons/go";
 import { HiOutlineCake } from "react-icons/hi";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { MdOutlineSchool } from "react-icons/md";
-import { clientFetch } from "@/lib/client-api";
-import type { PaginatedResponse, Staff } from "@/types/api";
-import {normalizeList} from "@/lib/utils";
+import { clientFetch, clientFetchPage } from "@/lib/client-api";
+import type { Staff } from "@/types/api";
 import {StaffCard, attendanceState, staffName} from "./_components/card";
 import AttendanceBadge from "./_components/badge";
 import StaffFormDrawer from "./_components/form";
 import StaffCsvModal from "./_components/csv-modal";
+import PaginationControls from "@/app/_components/pagination";
 
 const TABS = ["Teaching Staff", "Non-Teaching Staff"];
 
@@ -47,13 +47,19 @@ export default function StaffPage() {
   const [formStaff, setFormStaff] = useState<Staff | null>(null);
   const [staffFormOpen, setStaffFormOpen] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, tabState]);
 
   const staffQuery = useQuery({
-    queryKey: ["staff"],
-    queryFn: () => clientFetch<Staff[] | PaginatedResponse<Staff>>("list/staff/"),
+    queryKey: ["staff", page, pageSize],
+    queryFn: () => clientFetchPage<Staff>("list/staff/", { page, pageSize }),
   });
 
-  const staff = useMemo(() => normalizeList(staffQuery.data), [staffQuery.data]);
+  const staff = useMemo(() => staffQuery.data?.results ?? [], [staffQuery.data]);
   const filteredStaff = useMemo(
     () =>
       staff
@@ -62,7 +68,7 @@ export default function StaffPage() {
     [searchQuery, staff, tabState],
   );
 
-  if (staffQuery.isLoading) {
+  if (staffQuery.isPending) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-14 w-14 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600" />
@@ -157,6 +163,14 @@ export default function StaffPage() {
           ))}
         </div>
       )}
+
+      <PaginationControls
+        page={page}
+        pageSize={pageSize}
+        total={staffQuery.data?.count ?? 0}
+        isLoading={staffQuery.isFetching}
+        onPageChange={setPage}
+      />
 
       {selectedStaff ? (
         <StaffProfileDrawer
